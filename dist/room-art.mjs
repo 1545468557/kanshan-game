@@ -148,7 +148,7 @@ document.addEventListener('keydown',e=>{
 const composer=new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene,camera));
 const ao=new SSAOPass(scene,camera,innerWidth,innerHeight,16);
-ao.kernelRadius=5;ao.minDistance=.003;ao.maxDistance=.08; // v14 lighter AO
+ao.kernelRadius=3;ao.minDistance=.006;ao.maxDistance=.022; // v31: was (5 / .003 / .08) — .08 ≈ 4 m of depth range at near .07 / far 50, so the AO bled a halo around the moving protagonist
 composer.addPass(ao);composer.addPass(new OutputPass());
 function resize(){
   const w=canvas.clientWidth,h=canvas.clientHeight;
