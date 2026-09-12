@@ -480,9 +480,11 @@ const hdrTask=new RGBELoader().loadAsync('./assets/materials/old_room.hdr').then
 const modelSpecs=[
   {id:'Sofa_01',label:'旧布艺木沙发',width:2.5,x:-.08,z:-3.15,rot:0},
   {id:'painted_wooden_chair_02',label:'靠窗旧木椅',height:1.04,x:2.72,z:1.92,rot:Math.PI},
-  {id:'round_wooden_table_01',label:'圆木边桌',height:.68,x:-1.56,z:-1.58,rot:.13},
+  {id:'round_wooden_table_01',label:'圆木边桌',height:.68,x:-1.78,z:3.12,rot:.13},
   {id:'vintage_cabinet_01',label:'旧木柜',height:1.76,x:-3.30,z:-.05,rot:Math.PI/2},
-  {id:'desk_lamp_arm_01',label:'金属台灯',height:.48,x:3.72,y:.85,z:.3,rot:1.8},
+  // The lamp belongs on the round table (its warm pool of light, lampGlow, has
+  // always sat there); its y is the case bottom, so 0.68 = the table top.
+  {id:'desk_lamp_arm_01',label:'金属台灯',height:.48,x:-1.93,y:.68,z:3.00,rot:1.8},
   {id:'book_encyclopedia_set_01',label:'旧书',height:.3,x:-.6,y:.5,z:-3.15,rot:.20}
 ];
 $('load-progress').max=modelSpecs.length+7;
@@ -520,8 +522,8 @@ await Promise.all([hdrTask,photoTask,...modelTasks]);
 // AI request. Key observations are fixed facts for this art-preview slice;
 // later the chapter manifest can replace them with source-checked clues.
 const inspectData=[
-  {id:'table',name:'圆木桌',type:'环境记录',position:[-1.56,.78,-1.58],radius:.52,text:'桌面落满灰尘，边角还有一层细灰。看来已经很久没人使用了。',clue:false},
-  {id:'lamp',name:'金属台灯',type:'环境记录',position:[3.72,1.12,.3],radius:.28,text:'灯罩上有一层薄灰，电线却被理得很整齐。它最后一次被移动的时间，无法仅凭外观判断。',clue:false},
+  {id:'table',name:'圆木桌',type:'环境记录',position:[-1.78,.78,3.12],radius:.52,text:'桌面落满灰尘，边角还有一层细灰。看来已经很久没人使用了。',clue:false},
+  {id:'lamp',name:'金属台灯',type:'环境记录',position:[-1.93,.92,3.00],radius:.28,text:'灯罩上有一层薄灰，电线却被理得很整齐。它最后一次被移动的时间，无法仅凭外观判断。',clue:false},
   {id:'books',name:'旧书',type:'环境记录',position:[-.6,.65,-3.15],radius:.25,text:'书脊发白，页角卷曲。最上面那本比下面几本干净一些。',clue:true,clueText:'调查提示：物品表面的灰尘并不完全一致。'},
   {id:'cabinet',name:'旧木柜抽屉',type:'物件操作',position:[-3.30,1.08,.76],radius:.38,text:'木柜上层有一只小抽屉，拉手边缘被磨得发亮。可以拉开看看。',clue:false},
   {id:'sofa',name:'旧布艺沙发',type:'环境记录',position:[-.08,1.05,-3.15],radius:1.05,text:'坐垫已经塌陷，布面褪色，没有新近坐过的明显痕迹。',clue:false},
@@ -538,7 +540,7 @@ const inspectData=[
 // final five answers affect the score.
 const propPositions={
   'blue-bottle':[2.2,.12,.6],'fake-wound':[-1.0,.52,-3.2],gauze:[.5,.545,-3.18],
-  'record-phone':[2.6,.015,-2.8],'shoot-note':[-1.5,.69,-1.45],'sink-residue':[-2.43,1.09,-4.82],
+  'record-phone':[2.6,.015,-2.8],'shoot-note':[-1.66,.69,3.22],'sink-residue':[-2.43,1.09,-4.82],
   'trash-kit':[-2.67,.34,-4.18],'door-scratch':[2.42,1.42,-3.04],diary:[-.1,.53,-3.12],
   // The old clock hung at z=-3.12, i.e. ~0.7 m in front of the niche plaster,
   // so it read as floating. Mount it flush on the niche rear wall (z=-3.84),
@@ -691,7 +693,7 @@ $('inspect-action').onclick=()=>{
 $('inspect-return').onclick=resumePlayer;
 $('inspect-close').onclick=resumePlayer;
 // A very small, physically located pool of warm light at the metal lamp.
-const lampGlow=new T.PointLight('#ffd19a',.6,2.2,2);lampGlow.position.set(-1.66,1.04,-1.56);scene.add(lampGlow);
+const lampGlow=new T.PointLight('#ffd19a',.6,2.2,2);lampGlow.position.set(-1.93,1.04,3.00);scene.add(lampGlow);
 if(failures.length){
   $('art-status').textContent='蓝血第一幕 · '+failures.join('、')+'未载入，请刷新重试';
 }else $('art-status').textContent='第一幕 · 蓝血 · 调查现场';
