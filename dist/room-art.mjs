@@ -21,11 +21,11 @@ const canvas=$('world'), coarse=matchMedia('(pointer:coarse)').matches;
 const renderer=new T.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
 renderer.setPixelRatio(Math.min(devicePixelRatio,coarse?1.25:1.6));
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;
-renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
+renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.26; // v14 lighter: floor shadows appear lighter
 renderer.outputColorSpace=T.SRGBColorSpace;
 const scene=new T.Scene();scene.background=new T.Color('#393c34');
 const sceneCharacters=[];
-for(const [kind,position,rotation] of [['bear',[2.35,0,-.55],-1.15],['bird',[-.15,0,-.20],.55],['penguin',[2.90,0,-2.05],-1.8]]){
+for(const [kind,position,rotation] of [['bear',[2.35,0,-.55],-1.15],['bird',[-.60,0,3.35],3.10],['penguin',[2.90,0,-2.05],-1.8]]){
   const character=createCharacter(T,kind);character.root.position.set(...position);character.root.rotation.y=rotation;character.root.scale.setScalar(.82);scene.add(character.root);sceneCharacters.push(character);
 }
 const camera=new T.PerspectiveCamera(55,1,.07,50);
@@ -148,7 +148,7 @@ document.addEventListener('keydown',e=>{
 const composer=new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene,camera));
 const ao=new SSAOPass(scene,camera,innerWidth,innerHeight,16);
-ao.kernelRadius=7;ao.minDistance=.002;ao.maxDistance=.10;
+ao.kernelRadius=5;ao.minDistance=.003;ao.maxDistance=.08; // v14 lighter AO
 composer.addPass(ao);composer.addPass(new OutputPass());
 function resize(){
   const w=canvas.clientWidth,h=canvas.clientHeight;
@@ -231,7 +231,7 @@ function agedPlasterMaterial(){
   material.side=T.DoubleSide;
   return material;
 }
-const agedWall=agedPlasterMaterial();
+const limeUnused=agedPlasterMaterial();
 function surface(w,h,x,y,z,ry,mat=plaster,scale=2.8){
   const g=new T.PlaneGeometry(w,h);const uv=g.attributes.uv;
   for(let i=0;i<uv.count;i++){uv.setXY(i,uv.getX(i)*w/scale,uv.getY(i)*h/scale);}
@@ -249,46 +249,46 @@ function structural(w,h,d,x,y,z,mat=wood){
 }
 const ground=surface(7.5,10,0,-.012,-.65,0,floor,2.65);ground.rotation.x=-Math.PI/2;
 const ceiling=surface(7.5,9.5,0,3.5,-.65,0,lime,4.8);ceiling.rotation.x=Math.PI/2;
-surface(8.5,3.5,-3.75,1.75,-.2,Math.PI/2,agedWall,2.8);
+surface(8.5,3.5,-3.75,1.75,-.2,Math.PI/2,lime,2.8);
 // Interior finish planes sit a few centimetres inside the structural walls so
 // the textured surface is what the player sees, while the original planes
 // continue to provide collision and occlusion.
-surface(8.5,3.5,-3.695,1.75,-.2,Math.PI/2,agedWall,2.8);
+surface(8.5,3.5,-3.695,1.75,-.2,Math.PI/2,lime,2.8);
 // Right wall has a physical window aperture. Only light through it can make
 // the long afternoon shadows across the floor.
-surface(3.6,3.5,3.75,1.75,-2.95,-Math.PI/2,agedWall,2.8);
-surface(2,3.5,3.75,1.75,2.5,-Math.PI/2,agedWall,2.8);
-surface(2.05,.85,3.75,.425,.28,-Math.PI/2);
-surface(2.05,.48,3.75,3.26,.28,-Math.PI/2);
-surface(3.6,3.5,3.695,1.75,-2.95,-Math.PI/2,agedWall,2.8);
-surface(2,3.5,3.695,1.75,2.5,-Math.PI/2,agedWall,2.8);
+surface(3.6,3.5,3.75,1.75,-2.95,-Math.PI/2,lime,2.8);
+surface(2,3.5,3.75,1.75,2.5,-Math.PI/2,lime,2.8);
+surface(2.05,.85,3.75,.425,.28,-Math.PI/2,lime,2.8);
+surface(2.05,.48,3.75,3.26,.28,-Math.PI/2,lime,2.8);
+surface(3.6,3.5,3.695,1.75,-2.95,-Math.PI/2,lime,2.8);
+surface(2,3.5,3.695,1.75,2.5,-Math.PI/2,lime,2.8);
 // Frontal composition: dark side passage, deep centre niche, closed door.
-surface(.32,3.5,-3.59,1.75,-3.18,0,agedWall,2.8);
-surface(.7,3.5,-1.95,1.75,-3.18,0,agedWall,2.8);
-surface(1.12,.54,-2.9,3.23,-3.18,0,agedWall,2.8);
-surface(.52,3.5,1.82,1.75,-3.18,0,agedWall,2.8);
-surface(.25,3.5,3.62,1.75,-3.18,0,agedWall,2.8);
-surface(1.31,.55,2.85,3.225,-3.18,0,agedWall,2.8);
-surface(3.4,.4,-.08,3.3,-3.18,0,agedWall,2.8);
+surface(.32,3.5,-3.59,1.75,-3.18,0,lime,2.8);
+surface(.7,3.5,-1.95,1.75,-3.18,0,lime,2.8);
+surface(1.12,.54,-2.9,3.23,-3.18,0,lime,2.8);
+surface(.52,3.5,1.82,1.75,-3.18,0,lime,2.8);
+surface(.25,3.5,3.62,1.75,-3.18,0,lime,2.8);
+surface(1.31,.55,2.85,3.225,-3.18,0,lime,2.8);
+surface(3.4,.4,-.08,3.3,-3.18,0,lime,2.8);
 // The recessed back wall is the surface seen in the close side camera. It
 // must receive the same aged finish as the side walls; otherwise it reads as
 // an unfinished dark-green placeholder behind the actual furnishings.
-surface(3.38,3.1,-.08,1.55,-3.84,0,agedWall,4.1);
-surface(.66,3.1,-1.77,1.55,-3.51,Math.PI/2,agedWall,2.8);
-surface(.66,3.1,1.61,1.55,-3.51,-Math.PI/2,agedWall,2.8);
-const nicheSoffit=surface(3.38,.66,-.08,3.1,-3.51,0,agedWall,2.8);nicheSoffit.rotation.x=Math.PI/2;
+surface(3.38,3.1,-.08,1.55,-3.84,0,lime,4.1);
+surface(.66,3.1,-1.77,1.55,-3.51,Math.PI/2,lime,2.8);
+surface(.66,3.1,1.61,1.55,-3.51,-Math.PI/2,lime,2.8);
+const nicheSoffit=surface(3.38,.66,-.08,3.1,-3.51,0,lime,2.8);nicheSoffit.rotation.x=Math.PI/2;
 // The +z end of the main room was open: the right wall stops at z~3.5 and
 // no cross-wall closed the rear, so rear-facing cameras saw the scene
 // background as a blank dark-green wall. Close it with the same aged
 // plaster so every wall reads identically.
-surface(7.5,3.5,0,1.75,4.05,Math.PI,agedWall,4.1);
-surface(.55,3.5,3.75,1.75,3.775,-Math.PI/2,agedWall,2.8);
+surface(7.5,3.5,0,1.75,4.05,Math.PI,lime,4.1);
+surface(.55,3.5,3.75,1.75,3.775,-Math.PI/2,lime,2.8);
 // Wall treatment: the old plaster is not a single unbroken colour field.
 // These restrained, physical decals and the low skirting catch side light and
 // make the wall read as a used surface even when the camera is close to it.
 const wallWear=new T.Group();wallWear.name='old-wall-wear';scene.add(wallWear);
-const wearMat=new T.MeshStandardMaterial({color:'#77695a',roughness:1,transparent:true,opacity:.30,depthWrite:false});
-const crackMat=new T.MeshStandardMaterial({color:'#5c5146',roughness:1,transparent:true,opacity:.64,depthWrite:false});
+const wearMat=new T.MeshStandardMaterial({color:'#625d4e',roughness:1,transparent:true,opacity:.22,depthWrite:false}); // v16 blend into wall
+const crackMat=new T.MeshStandardMaterial({color:'#5a5547',roughness:1,transparent:true,opacity:.45,depthWrite:false}); // v16 blend into wall
 function rightWallPatch(z,y,sx,sy,rotation=0){
   const patch=new T.Mesh(new T.CircleGeometry(1,18),wearMat);patch.position.set(3.705,y,z);patch.rotation.y=-Math.PI/2;patch.rotation.z=rotation;patch.scale.set(sx,sy,1);wallWear.add(patch);return patch;
 }
@@ -299,7 +299,7 @@ function leftWallPatch(z,y,sx,sy,rotation=0){
 // Large, irregular repair blooms make the blank wall beside the cabinet read
 // as the same old plaster, rather than an untextured placeholder.
 leftWallPatch(1.98,2.52,.54,.30,-.18);leftWallPatch(2.72,1.32,.32,.18,.25);leftWallPatch(.72,2.02,.28,.15,-.35);
-const repairMat=new T.MeshStandardMaterial({color:'#b4a17f',roughness:1,transparent:true,opacity:.38,depthWrite:false});
+const repairMat=new T.MeshStandardMaterial({color:'#666052',roughness:1,transparent:true,opacity:.25,depthWrite:false}); // v16 blend into wall
 const repair=new T.Mesh(new T.PlaneGeometry(.66,.42),repairMat);repair.position.set(-3.694,1.55,1.70);repair.rotation.y=Math.PI/2;repair.rotation.z=-.08;wallWear.add(repair);
 for(const [z,y,len,lean] of [[.68,2.45,.56,-.06],[1.34,1.74,.42,.04],[2.76,1.25,.30,-.08]]){
   const crack=new T.Mesh(new T.BoxGeometry(.012,len,.018),crackMat);crack.position.set(3.698,y,z);crack.rotation.y=-Math.PI/2;crack.rotation.z=lean;wallWear.add(crack);
@@ -351,9 +351,9 @@ function leftWallCalendar(){
 scene.add(leftWallCalendar());
 // The short side passage supplies real parallax and occlusion, not a flat
 // image of another room. It remains part of this single art-review space.
-surface(2.35,3.5,-3.50,1.75,-4.30,Math.PI/2,agedWall,2.8);
-surface(2.35,3.5,-2.28,1.75,-4.30,-Math.PI/2,agedWall,2.8);
-surface(1.22,3.5,-2.89,1.75,-5.46,0,agedWall,2.8);
+surface(2.35,3.5,-3.50,1.75,-4.30,Math.PI/2,lime,2.8);
+surface(2.35,3.5,-2.28,1.75,-4.30,-Math.PI/2,lime,2.8);
+surface(1.22,3.5,-2.89,1.75,-5.46,0,lime,2.8);
 const corridorFill=new T.PointLight('#b7c3a0',.8,4,2);corridorFill.position.set(-2.9,2.6,-4.7);scene.add(corridorFill);
 // Multi-profile door casings and room skirting, restrained faded pink-brown.
 function casing(cx,z,width,height){
@@ -448,15 +448,15 @@ cistern=createCistern();cistern.root.position.set(-3.18,.43,-5.00);bathroom.add(
 bathCyl(.085,.012,-2.88,.012,-4.72,chrome,24);
 const bathLight=new T.PointLight('#d9e2d2',1.1,3.4,2);bathLight.position.set(-2.88,2.55,-4.82);bathroom.add(bathLight);
 
-scene.add(new T.HemisphereLight('#d2d7c6','#494337',.32));
+scene.add(new T.HemisphereLight('#d2d7c6','#494337',.45)); // v14 brighter ambient
 const sun=new T.DirectionalLight('#ffe1ad',3.6);
 sun.position.set(6,3.8,1.4);sun.target.position.set(-1,.15,-2.5);
 sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-7,right:7,top:7,bottom:-7,near:.1,far:22});
 sun.shadow.bias=-.00015;sun.shadow.normalBias=.025;sun.shadow.radius=3;scene.add(sun,sun.target);
-const windowBounce=new T.PointLight('#d8d8bd',15,10,2);windowBounce.position.set(3.20,2.10,.1);scene.add(windowBounce);
-const roomBounce=new T.PointLight('#bd9d7d',2.8,9,2);roomBounce.position.set(-1,2.8,.3);scene.add(roomBounce);
-const plasterFillLeft=new T.PointLight('#e0c6a1',5.2,7,2);plasterFillLeft.position.set(-2.7,2.25,.55);scene.add(plasterFillLeft);
-const plasterFillRight=new T.PointLight('#d7bea0',3.8,6,2);plasterFillRight.position.set(2.7,2.1,1.55);scene.add(plasterFillRight);
+const windowBounce=new T.PointLight('#d8d8bd',3,10,2);windowBounce.position.set(3.20,2.10,.1);scene.add(windowBounce);
+const roomBounce=new T.PointLight('#bd9d7d',1.2,9,2);roomBounce.position.set(-1,2.8,.3);scene.add(roomBounce);
+const plasterFillLeft=new T.PointLight('#e0c6a1',2,7,2);plasterFillLeft.position.set(-2.7,2.25,.55);scene.add(plasterFillLeft);
+const plasterFillRight=new T.PointLight('#d7bea0',1.6,6,2);plasterFillRight.position.set(2.7,2.1,1.55);scene.add(plasterFillRight);
 const pmrem=new T.PMREMGenerator(renderer);
 const hdrTask=new RGBELoader().loadAsync('./assets/materials/old_room.hdr').then(hdr=>{
   const env=pmrem.fromEquirectangular(hdr);scene.environment=env.texture;scene.environmentIntensity=.45;hdr.dispose();pmrem.dispose();done('室内环境光');
@@ -467,8 +467,8 @@ const modelSpecs=[
   {id:'painted_wooden_chair_02',label:'靠窗旧木椅',height:1.04,x:2.72,z:1.92,rot:Math.PI},
   {id:'round_wooden_table_01',label:'圆木边桌',height:.68,x:-1.56,z:-1.58,rot:.13},
   {id:'vintage_cabinet_01',label:'旧木柜',height:1.76,x:-3.30,z:-.05,rot:Math.PI/2},
-  {id:'desk_lamp_arm_01',label:'金属台灯',height:.48,x:-1.69,y:.69,z:-1.63,rot:1.8},
-  {id:'book_encyclopedia_set_01',label:'旧书',width:.32,x:-1.35,y:.688,z:-1.49,rot:.20}
+  {id:'desk_lamp_arm_01',label:'金属台灯',height:.48,x:3.72,y:.85,z:.3,rot:1.8},
+  {id:'book_encyclopedia_set_01',label:'旧书',height:.3,x:-.6,y:.5,z:-3.15,rot:.20}
 ];
 $('load-progress').max=modelSpecs.length+7;
 const photoTask=textures.loadAsync('./assets/wall-photo-v1.png').then(texture=>{
@@ -506,8 +506,8 @@ await Promise.all([hdrTask,photoTask,...modelTasks]);
 // later the chapter manifest can replace them with source-checked clues.
 const inspectData=[
   {id:'table',name:'圆木桌',type:'环境记录',position:[-1.56,.78,-1.58],radius:.52,text:'桌面落满灰尘，边角还有一层细灰。看来已经很久没人使用了。',clue:false},
-  {id:'lamp',name:'金属台灯',type:'环境记录',position:[-1.66,1.02,-1.56],radius:.28,text:'灯罩上有一层薄灰，电线却被理得很整齐。它最后一次被移动的时间，无法仅凭外观判断。',clue:false},
-  {id:'books',name:'旧书',type:'环境记录',position:[-1.35,.78,-1.49],radius:.25,text:'书脊发白，页角卷曲。最上面那本比下面几本干净一些。',clue:true,clueText:'调查提示：物品表面的灰尘并不完全一致。'},
+  {id:'lamp',name:'金属台灯',type:'环境记录',position:[3.72,1.12,.3],radius:.28,text:'灯罩上有一层薄灰，电线却被理得很整齐。它最后一次被移动的时间，无法仅凭外观判断。',clue:false},
+  {id:'books',name:'旧书',type:'环境记录',position:[-.6,.65,-3.15],radius:.25,text:'书脊发白，页角卷曲。最上面那本比下面几本干净一些。',clue:true,clueText:'调查提示：物品表面的灰尘并不完全一致。'},
   {id:'cabinet',name:'旧木柜抽屉',type:'物件操作',position:[-3.30,1.08,.76],radius:.38,text:'木柜上层有一只小抽屉，拉手边缘被磨得发亮。可以拉开看看。',clue:false},
   {id:'sofa',name:'旧布艺沙发',type:'环境记录',position:[-.08,1.05,-3.15],radius:1.05,text:'坐垫已经塌陷，布面褪色，没有新近坐过的明显痕迹。',clue:false},
   {id:'door',name:'402 房门',type:'调查对象',position:[2.86,1.45,-3.03],radius:.7,text:'门板没有明显撬动痕迹。锁孔附近有几道很细的金属划痕，肉眼不容易发现。',clue:true,clueText:'线索记录：没有暴力破门，但锁孔附近存在细小划痕。'},
@@ -522,9 +522,9 @@ const inspectData=[
 // red herrings. They all have a physical 3D presence, but only the player's
 // final five answers affect the score.
 const propPositions={
-  'blue-bottle':[-1.56,.98,-1.58],'fake-wound':[-1.12,.94,-1.54],gauze:[-1.88,.96,-1.42],
-  'record-phone':[-1.70,.98,-1.73],'shoot-note':[-1.92,.96,-1.54],'sink-residue':[-2.43,1.09,-4.82],
-  'trash-kit':[-2.67,.34,-4.18],'door-scratch':[2.42,1.42,-3.04],diary:[-.04,.87,-2.93],
+  'blue-bottle':[2.2,.12,.6],'fake-wound':[-1.0,.52,-3.2],gauze:[.5,.545,-3.18],
+  'record-phone':[2.6,.015,-2.8],'shoot-note':[-1.5,.69,-1.45],'sink-residue':[-2.43,1.09,-4.82],
+  'trash-kit':[-2.67,.34,-4.18],'door-scratch':[2.42,1.42,-3.04],diary:[-.1,.53,-3.12],
   'blue-paint':[-2.30,.18,-.55],'blue-label':[-2.72,.18,-.84],'old-clock':[1.15,2.25,-3.12]
 };
 const propRoot=new T.Group();propRoot.name='blueblood-case-props';scene.add(propRoot);
@@ -554,7 +554,7 @@ for(const prop of blueBloodCase.props){
   inspectData.push(data);caseInspectData.push(data);const propMesh=makePropMesh(prop.id,position);if(propMesh){propMesh.userData.inspect=data;casePropMeshes.push(propMesh);}
 }
 const hotspotGroup=new T.Group();hotspotGroup.name='inspection-hotspots';scene.add(hotspotGroup);
-const hotspotMaterial=new T.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false});
+const hotspotMaterial=new T.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false,visible:false}); // invisible hit-test proxy; never renders a white orb
 const markerMaterial=new T.MeshBasicMaterial({color:'#b8d9df',transparent:true,opacity:.75,depthWrite:false});
 const hotspots=[];
 for(const data of inspectData){
