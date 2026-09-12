@@ -341,8 +341,12 @@ function leftWallCalendar(){
   const x=-3.698,y=2.22,z=1.34,ry=Math.PI/2;
   const add=(mesh,px,py,pz)=>{mesh.position.set(px,py,pz);mesh.rotation.y=ry;mesh.castShadow=mesh.receiveShadow=true;group.add(mesh);return mesh;};
   // A shallow timber frame, a stack of old sheets, and two visible binder rings.
-  add(new T.Mesh(new T.BoxGeometry(.82,.055,1.06),woodMat),x,y,z);
-  add(new T.Mesh(new T.BoxGeometry(.67,.018,.88),paperMat),x+.038,y,z);
+  // BoxGeometry is authored in LOCAL axes and then rotated by ry=Math.PI/2, so
+  // local x -> world z (width along the wall), local y -> world y (height),
+  // local z -> world x (depth off the wall). The frame and the sheet stack had
+  // their height and depth swapped, which made them jut ~1 m into the room.
+  add(new T.Mesh(new T.BoxGeometry(.82,1.06,.055),woodMat),x,y,z);
+  add(new T.Mesh(new T.BoxGeometry(.67,.88,.018),paperMat),x+.038,y,z);
   const canvas=document.createElement('canvas');canvas.width=720;canvas.height=960;const ctx=canvas.getContext('2d');
   ctx.fillStyle='#d1c3a4';ctx.fillRect(0,0,720,960);
   ctx.fillStyle='#8d4c3e';ctx.fillRect(0,0,720,150);
