@@ -536,7 +536,11 @@ const propPositions={
   'blue-bottle':[2.2,.12,.6],'fake-wound':[-1.0,.52,-3.2],gauze:[.5,.545,-3.18],
   'record-phone':[2.6,.015,-2.8],'shoot-note':[-1.5,.69,-1.45],'sink-residue':[-2.43,1.09,-4.82],
   'trash-kit':[-2.67,.34,-4.18],'door-scratch':[2.42,1.42,-3.04],diary:[-.1,.53,-3.12],
-  'blue-paint':[-2.30,.18,-.55],'blue-label':[-2.72,.18,-.84],'old-clock':[1.15,2.25,-3.12]
+  // The old clock hung at z=-3.12, i.e. ~0.7 m in front of the niche plaster,
+  // so it read as floating. Mount it flush on the niche rear wall (z=-3.84),
+  // to the right of the framed print. Group origin + half of the 0.095 case
+  // depth => -3.84 + 0.0475 ≈ -3.79 so the case back sits on the plaster.
+  'blue-paint':[-2.30,.18,-.55],'blue-label':[-2.72,.18,-.84],'old-clock':[1.10,2.25,-3.79]
 };
 const propRoot=new T.Group();propRoot.name='blueblood-case-props';scene.add(propRoot);
 const propMats={blue:new T.MeshStandardMaterial({color:'#416e82',roughness:.42,metalness:.12}),paper:new T.MeshStandardMaterial({color:'#c9b990',roughness:.94}),dark:new T.MeshStandardMaterial({color:'#20282a',roughness:.8}),red:new T.MeshStandardMaterial({color:'#762f35',roughness:.5}),metal:new T.MeshStandardMaterial({color:'#706d66',roughness:.35,metalness:.72}),paint:new T.MeshStandardMaterial({color:'#41627a',roughness:.78}),glass:new T.MeshStandardMaterial({color:'#507b8e',roughness:.16,metalness:.22,transparent:true,opacity:.85})};
