@@ -299,8 +299,11 @@ function leftWallPatch(z,y,sx,sy,rotation=0){
 // Large, irregular repair blooms make the blank wall beside the cabinet read
 // as the same old plaster, rather than an untextured placeholder.
 leftWallPatch(1.98,2.52,.54,.30,-.18);leftWallPatch(2.72,1.32,.32,.18,.25);leftWallPatch(.72,2.02,.28,.15,-.35);
-const repairMat=new T.MeshStandardMaterial({color:'#666052',roughness:1,transparent:true,opacity:.25,depthWrite:false}); // v16 blend into wall
-const repair=new T.Mesh(new T.PlaneGeometry(.66,.42),repairMat);repair.position.set(-3.694,1.55,1.70);repair.rotation.y=Math.PI/2;repair.rotation.z=-.08;wallWear.add(repair);
+// v32: the rectangular repair patch was removed. Its material carried a flat
+// untextured colour (#666052) while the surrounding plaster used a dark worn
+// map, so it blended out noticeably brighter and read as a board stuck on the
+// wall — most obvious while the camera moved past it. The three soft circular
+// wear blooms above are kept: they are gradients, so they read as age instead.
 for(const [z,y,len,lean] of [[.68,2.45,.56,-.06],[1.34,1.74,.42,.04],[2.76,1.25,.30,-.08]]){
   const crack=new T.Mesh(new T.BoxGeometry(.012,len,.018),crackMat);crack.position.set(3.698,y,z);crack.rotation.y=-Math.PI/2;crack.rotation.z=lean;wallWear.add(crack);
 }
