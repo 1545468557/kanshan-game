@@ -703,7 +703,14 @@ function openInspection(data,focus=true){
 }
 function renderInspection(){
   const data=selectedInspect;if(!data)return;
-  $('inspect-type').textContent=data.type;$('inspect-title').textContent=data.name;$('inspect-copy').textContent=data.text;
+  // v37: the panel used to print the prop's internal category ("关键证据" / "辅助证据" /
+  // "干扰项" / "环境道具" / "性格资料") above the title. That answered the one question
+  // the player is supposed to answer themselves: a distractor announced itself as a
+  // distractor, and key evidence announced itself as key evidence, so the observation
+  // text (the physical detail that actually lets you tell them apart) never had to be
+  // read. The panel header already reads 现场观察, so the kicker was redundant too.
+  // The category stays in the data — a post-submission review could still use it.
+  $('inspect-type').hidden=true;$('inspect-title').textContent=data.name;$('inspect-copy').textContent=data.text;
   $('inspect-panel').dataset.object=data.id;delete $('inspect-panel').dataset.state;
   // Do not score or automatically copy an observation into the player's memo.
   const operable=data.id==='toilet'||data.id==='photo'||data.id==='cabinet';
