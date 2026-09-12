@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/><meta name="theme-color" content="#101c26"/><title>第一幕 · 谁在替空房敲门｜知乎——你是否问到了关键线索</title><link rel="stylesheet" href="./room.css"/></head>
+<body>
+  <main id="stage" aria-label="402旧公寓，第三人称3D场景"><canvas id="world" tabindex="0" aria-label="3D游戏画面，WASD移动，拖动画面转动视角，E交互"></canvas></main>
+  <header class="hud-top"><a class="back" href="./?v=archive" aria-label="返回故事档案馆">← <span>返回档案馆</span></a><div class="location"><span>第一幕 / 402</span><h1>谁在替空房敲门</h1></div><button class="hud-button" id="help">操作说明</button></header>
+  <aside class="objective"><small>当前调查</small><p id="objective">看看这间房子，哪里被人动过。</p><span class="objective-line"></span><small id="progress">现场记录 0 / 5</small></aside>
+  <div id="labels" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+  <button id="interact" class="interact" hidden><kbd>E</kbd><span id="interact-text">查看</span></button>
+  <div class="bottom-hud"><div class="avatar"><img src="./assets/kanshan-idle.gif" alt=""/><span><small>调查员</small><strong>刘看山</strong></span></div><div class="keys"><span><kbd>W A S D</kbd> 移动</span><span><kbd>拖动画面</kbd> 转视角</span><span><kbd>E</kbd> 交互</span><span><kbd>F</kbd> 手电</span></div><div class="hud-actions"><button id="torch" class="hud-button" aria-pressed="true">手电 · 开</button><button id="notebook" class="hud-button">线索本 <span id="clue-count">0</span></button></div></div>
+  <div id="touch-controls"><div id="joystick" aria-label="拖动移动摇杆"><span id="stick"></span></div><span class="touch-look">拖动右侧转视角</span></div>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <dialog id="story-dialog" aria-labelledby="dialog-title"><div class="dialog-head"><span id="dialog-kicker">现场记录</span><button id="close-dialog" aria-label="关闭">×</button></div><div id="dialog-body"></div></dialog>
+  <section id="loading" class="loading" aria-live="polite"><div class="loading-card"><small>知乎 · 第一幕</small><h2>夜深了。<br>还有谁在这里？</h2><p id="loading-text">正在搭建你的调查现场…</p><div class="loading-line"></div><a href="./">返回主菜单</a></div></section>
+  <noscript><p class="fatal">请开启 JavaScript 后进入 3D 场景。<a href="./">返回主菜单</a></p></noscript>
+  <script type="module">
+    const fail = (message) => { document.querySelector('#loading').hidden=false; document.querySelector('#loading-text').textContent=message; document.querySelector('.loading-line').style.display='none'; };
+    window.addEventListener('error', e => { if (!window.roomReady) fail('场景未能启动，请刷新重试。若仍无法进入，请换用支持 WebGL 2 的浏览器。'); });
+    import('./room.mjs').catch(error => { console.error(error); fail('3D 场景加载失败。请刷新重试，或返回主菜单。'); });
+  </script>
+</body></html>

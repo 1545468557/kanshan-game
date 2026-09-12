@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import * as T from '../dist/vendor/three/three.module.min.js';
+import {createDrawer} from '../dist/drawer.mjs';
+const drawer=createDrawer();
+const finish=()=>{for(let i=0;i<80;i++)drawer.update(1/60);};
+assert.equal(drawer.state().phase,'closed');
+assert.equal(drawer.setOpen(true),true);
+assert.equal(drawer.setOpen(false),false,'cannot reverse while drawer is moving');
+drawer.update(.1);assert.equal(drawer.state().phase,'opening');assert.ok(drawer.drawer.position.z>.02);
+finish();assert.equal(drawer.state().phase,'open');assert.ok(drawer.drawer.position.z>.25);
+drawer.setOpen(false);finish();assert.equal(drawer.state().phase,'closed');
+assert.deepEqual(drawer.drawer.position.toArray(),[0,0,.02]);
+drawer.setOpen(true,{immediate:true});assert.equal(drawer.state().phase,'open');
+drawer.setOpen(false,{immediate:true});assert.equal(drawer.state().phase,'closed');
+for(const dt of [NaN,Infinity,-1,0])drawer.update(dt);
+drawer.root.traverse(object=>{if(object.geometry)for(const value of object.geometry.attributes.position.array)assert.ok(Number.isFinite(value));});
+console.log('Drawer: open/close animation, input lock, reduced motion and finite geometry passed.');

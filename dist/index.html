@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./menu.css" />
+    <link rel="stylesheet" href="./home-v2.css" />
   </head>
   <body>
     <div class="world" aria-hidden="true"></div><div class="shade" aria-hidden="true"></div>
@@ -23,14 +24,14 @@
           <p class="lead">每个人都说了一部分。<br>剩下的，等你来问。</p>
           <nav class="menu" aria-label="游戏主菜单"><button class="primary" data-open="chapters"><span>选择故事</span><span aria-hidden="true">↗</span></button><button class="text-button" data-open="guide"><span class="menu-index">02</span> 调查员须知 <span aria-hidden="true">＋</span></button><button class="text-button" data-open="sources"><span class="menu-index">03</span> 故事从何而来 <span aria-hidden="true">＋</span></button></nav>
         </section>
-        <button class="door-hotspot" id="door" aria-label="轻敲402房门，体验场景反馈"><span class="crosshair">＋</span><span>402<span class="hotspot-hint">轻敲房门</span></span></button>
-        <aside class="whisper" id="whisper" aria-live="polite">门后，似乎还有什么没有说完。</aside>
+        <button class="door-hotspot archive-hotspot" data-open="chapters" aria-label="翻开故事档案，选择关卡"><span class="crosshair">＋</span><span>故事档案<span class="hotspot-hint">翻开一个未解的故事</span></span></button>
+        <aside class="whisper" id="whisper" aria-live="polite">每一个故事，都有尚未问出口的问题。</aside>
         <section class="bottom-rail" aria-label="第一章与调查员">
           <button class="chapter-teaser" data-open="case"><span class="chapter-number">01</span><span class="chapter-text"><small>第一章 · 旧公寓</small><strong>谁在替空房敲门</strong></span><span class="chapter-state">查看案件简介 <span aria-hidden="true">↗</span></span></button>
           <div class="investigator"><img src="./assets/kanshan-idle.gif" alt="刘看山" width="76" height="76"/><div><small>你的调查员</small><strong>刘看山</strong></div><span class="investigator-line"></span><p>别急着相信，<br>再问一句。</p></div>
         </section>
       </main>
-      <footer><span>观察 · 追问 · 还原</span><span>知乎内容改编探索 · 非官方独立参赛原型</span><span>序幕 / 001</span></footer>
+      <footer><span>观察 · 追问 · 还原</span><span>知乎内容改编探索 · 非官方独立参赛原型</span><span>故事档案馆</span></footer>
     </div>
     <dialog id="panel" aria-labelledby="panel-title"><div class="dialog-bar"><span>调查档案 / <span id="panel-kind">01</span></span><button id="close-panel" class="icon-button" aria-label="关闭窗口">✕</button></div><div id="panel-body"></div></dialog>
     <script src="./menu.js"></script>

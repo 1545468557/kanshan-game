@@ -1,0 +1,30 @@
+/* Player controls sit around the scene, not in a dashboard over it. */
+kbd{font:11px/1.5 ui-monospace,monospace;border:1px solid #c1c3bd60;border-radius:3px;padding:2px 5px;color:#eee9df}
+.player-badge{position:fixed;left:30px;top:146px;z-index:2;display:flex;gap:12px;align-items:center;text-shadow:0 2px 8px #000;pointer-events:none}
+.player-dot{width:7px;height:7px;background:#aed5e6;border-radius:50%;box-shadow:0 0 12px #7dbcec77}
+.player-badge small{display:block;color:#c6c6bb;letter-spacing:.12em;font-size:11px;margin-bottom:6px}
+.player-badge strong{font-weight:400;font-family:'Songti SC',serif;font-size:23px;letter-spacing:.15em}
+.player-resume{display:none;position:fixed;top:112px;right:30px;z-index:4;min-height:44px;border:1px solid #d5c2a655;background:#17201ddd;color:#eadccc;padding:10px 15px;border-radius:4px;backdrop-filter:blur(12px)}
+.observing .player-resume{display:block}.player-resume kbd{margin-left:12px}
+#player-toast{position:fixed;left:50%;top:24%;transform:translateX(-50%);background:#15201ee8;border:1px solid #ccb79944;border-radius:5px;padding:12px 20px;z-index:5;max-width:85vw;font-size:14px;pointer-events:none}
+#interact-prompt{position:fixed;bottom:122px;left:50%;transform:translateX(-50%);display:flex;gap:14px;align-items:center;text-align:left;z-index:3;border:1px solid #c9bb9d66;border-radius:5px;background:#12201bea;backdrop-filter:blur(10px);padding:11px 20px;min-height:60px;box-shadow:0 6px 25px #0004}
+#interact-prompt kbd{font-size:17px;padding:3px 10px}#interact-prompt small{display:block;font-size:10px;color:#b9d0d2;letter-spacing:.15em;margin-bottom:4px}#interact-prompt strong{font-size:16px;font-weight:400;white-space:nowrap}
+.art-footer{align-items:center;gap:12px;bottom:20px}.art-footer p{font-size:12px;white-space:nowrap}.art-footer button{padding:10px 12px}.art-footer nav{flex-wrap:nowrap}.art-footer i{padding:0 4px}
+.camera-menu{position:relative;font-size:13px}.camera-menu summary{cursor:pointer;min-height:44px;display:flex;align-items:center;padding:10px 12px;white-space:nowrap;color:#ccc6bb}.camera-menu summary::after{content:'⌃';margin-left:8px}.camera-menu>div{position:absolute;bottom:56px;left:0;display:grid;width:140px;padding:6px;background:#1b241ff5;border:1px solid #c7b28c66;border-radius:4px}.camera-menu button{text-align:left}
+#inspect-panel{bottom:108px;max-height:calc(100svh - 245px)}
+#npc-copy{padding:6px 24px 20px}.tiny{font-size:12px;color:#9bada6;line-height:1.7}
+#move-stick{display:none;position:fixed;bottom:130px;left:30px;width:110px;height:110px;border-radius:50%;border:1px solid #e5d9c35c;background:#17201c80;z-index:3;touch-action:none;user-select:none}
+#move-stick-thumb{display:block;position:absolute;left:33px;top:33px;width:42px;height:42px;border-radius:50%;border:1px solid #e4d8bb88;background:#d7d5bc40;box-shadow:0 2px 15px #0003;pointer-events:none}
+#move-stick small{position:absolute;bottom:-22px;width:100%;text-align:center;font-size:11px;letter-spacing:.12em;color:#c8c6b7;pointer-events:none}
+.clean .player-badge,.clean #player-toast,.clean #interact-prompt,.clean #move-stick,.clean .player-resume{display:none!important}
+body:has(dialog[open]) #move-stick,body:has(#inspect-panel:not([hidden])) #move-stick,.observing #move-stick{visibility:hidden}
+@media(max-width:1100px){.art-footer{flex-direction:column;gap:5px}.art-footer p{margin:0 0 4px}#interact-prompt{bottom:135px}.player-badge{top:135px}.art-footer nav{width:auto}}
+@media(pointer:coarse){#move-stick{display:block}#interact-prompt{left:auto;right:26px;bottom:152px;transform:none;padding:12px 16px}#interact-prompt kbd{display:none}#player-help{font-size:0}#player-help:after{content:'左侧摇杆移动 · 拖动画面环视 · 走近后点观察';font-size:12px}}
+@media(max-width:700px){
+  .player-badge{left:18px;top:128px}.player-badge strong{font-size:20px}.player-resume{top:112px;right:16px;font-size:12px}.player-resume kbd{display:none}
+  .art-footer{left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom))}.art-footer nav{display:flex;max-width:100%;overflow:visible;gap:0;width:100%}.art-footer button,.camera-menu summary{padding:8px 7px;font-size:12px;white-space:nowrap;min-height:44px}.art-footer nav>button{flex:1}#ui-hide{display:none}
+  .art-footer p{font-size:0}.art-footer p:after{content:'WASD 移动 · 拖动环视 · E 交互';font-size:11px}
+  .camera-menu>div{bottom:52px}.camera-menu summary::after{display:none}#move-stick{left:20px;bottom:125px;width:100px;height:100px}#move-stick-thumb{left:28px;top:28px}
+  #inspect-panel{bottom:98px;max-height:min(52svh,calc(100svh - 235px))}.player-badge{pointer-events:none}
+}
+@media(max-height:520px){.player-badge{display:none}.art-status{display:none}.art-header{padding:12px 18px}.place h1{font-size:18px}.player-resume{top:64px}#move-stick{bottom:95px;width:90px;height:90px}#move-stick-thumb{left:23px;top:23px}#interact-prompt{bottom:95px}#inspect-panel{max-height:calc(100svh - 155px);bottom:88px}.art-footer p{display:none}}
