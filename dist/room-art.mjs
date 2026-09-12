@@ -209,7 +209,7 @@ const [plaster,wood,floor,lime]=await Promise.all([
   material('worn_plaster_wall','#c6b89e'),
   material('wood_peeling_paint_weathered','#85725f'),
   material('old_wooden_floor_02','#b8b1a4','#8d8475'),
-  material('grey_plaster','#c4b9a7')
+  material('grey_plaster','#d6c9b4')
 ]);
 const architecture=new T.Group();architecture.name='new-apartment-architecture';scene.add(architecture);
 // A procedural aged-plaster texture is used as a thin interior finish. It
@@ -232,12 +232,10 @@ function agedPlasterMaterial(){
   return material;
 }
 const limeUnused=agedPlasterMaterial();
-// One texel density for every wall plane. The calls below used to mix 2.8, 4.1
-// and 4.8 metres per tile, so a 3.5 m wall showed 0.85 of a tile in one place
-// and 1.25 in another. Combined with UVs that always restarted at each plane's
-// own origin, every wall landed on a different blotch of the mottled plaster
-// and the room read as several different wall colours.
-const WALL_TILE=1.8, CEIL_TILE=3;
+// One texel density for every wall plane. All planes now use world-anchored UVs
+// (see surface() below), so a single density keeps the plaster continuous; 2.8 m
+// per tile is large enough that the aged texture reads as soft wear, not busy grime.
+const WALL_TILE=2.8, CEIL_TILE=3;
 function surface(w,h,x,y,z,ry,mat=plaster,scale=WALL_TILE){
   const g=new T.PlaneGeometry(w,h);const uv=g.attributes.uv;
   // Anchor the finish to world space rather than to the plane's own origin, so
@@ -478,7 +476,11 @@ cistern=createCistern();cistern.root.position.set(-3.18,.43,-5.00);bathroom.add(
 bathCyl(.085,.012,-2.88,.012,-4.72,chrome,24);
 const bathLight=new T.PointLight('#d9e2d2',1.1,3.4,2);bathLight.position.set(-2.88,2.55,-4.82);bathroom.add(bathLight);
 
-scene.add(new T.HemisphereLight('#d2d7c6','#494337',.45)); // v14 brighter ambient
+// v34: the ambient used to be a cool green-grey (#d2d7c6) at low intensity, so
+// any wall out of the direct sun picked up a green cast while sunlit walls read
+// warm — the "two different wall colours" split. Warm it up and raise it so the
+// whole room shares one warm, aged-plaster tone.
+scene.add(new T.HemisphereLight('#ddd0b6','#4a4436',.7));
 const sun=new T.DirectionalLight('#ffe1ad',3.6);
 sun.position.set(6,3.8,1.4);sun.target.position.set(-1,.15,-2.5);
 sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-7,right:7,top:7,bottom:-7,near:.1,far:22});
@@ -489,7 +491,7 @@ const plasterFillLeft=new T.PointLight('#e0c6a1',2,7,2);plasterFillLeft.position
 const plasterFillRight=new T.PointLight('#d7bea0',1.6,6,2);plasterFillRight.position.set(2.7,2.1,1.55);scene.add(plasterFillRight);
 const pmrem=new T.PMREMGenerator(renderer);
 const hdrTask=new RGBELoader().loadAsync('./assets/materials/old_room.hdr').then(hdr=>{
-  const env=pmrem.fromEquirectangular(hdr);scene.environment=env.texture;scene.environmentIntensity=.45;hdr.dispose();pmrem.dispose();done('室内环境光');
+  const env=pmrem.fromEquirectangular(hdr);scene.environment=env.texture;scene.environmentIntensity=.55;hdr.dispose();pmrem.dispose();done('室内环境光');
 }).catch(e=>{failures.push('环境光');console.error(e);done('环境光未载入');});
 
 const modelSpecs=[
