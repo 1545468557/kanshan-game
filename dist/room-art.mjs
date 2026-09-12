@@ -338,14 +338,25 @@ function leftWallCalendar(){
   const group=new T.Group();group.name='old-wall-calendar';
   const woodMat=new T.MeshStandardMaterial({color:'#5e4935',roughness:.82});
   const paperMat=new T.MeshStandardMaterial({color:'#c8bda2',roughness:.95});
-  const inkMat=new T.MeshBasicMaterial({color:'#625847',transparent:true,opacity:.58});
   const x=-3.698,y=2.22,z=1.34,ry=Math.PI/2;
-  const frame=new T.Mesh(new T.BoxGeometry(.78,.045,1.02),woodMat);frame.position.set(x,y,z);frame.rotation.y=ry;frame.castShadow=frame.receiveShadow=true;group.add(frame);
-  const paper=new T.Mesh(new T.PlaneGeometry(.62,.82),paperMat);paper.position.set(x+.028,y,z);paper.rotation.y=ry;paper.castShadow=paper.receiveShadow=true;group.add(paper);
-  // A simple month grid, slightly misregistered like an old printed calendar.
-  for(let i=0;i<5;i++){const line=new T.Mesh(new T.BoxGeometry(.012,.012,.48),inkMat);line.position.set(x+.055,y-.12+i*.13,z);line.rotation.y=ry;line.rotation.z=Math.PI/2;group.add(line);}
-  for(let i=0;i<4;i++){const line=new T.Mesh(new T.BoxGeometry(.012,.012,.54),inkMat);line.position.set(x+.056,y+.14,z-.23+i*.15);line.rotation.y=ry;line.rotation.z=Math.PI/2;group.add(line);}
-  const top=new T.Mesh(new T.BoxGeometry(.012,.06,.63),woodMat);top.position.set(x+.06,y+.38,z);top.rotation.y=ry;group.add(top);
+  const add=(mesh,px,py,pz)=>{mesh.position.set(px,py,pz);mesh.rotation.y=ry;mesh.castShadow=mesh.receiveShadow=true;group.add(mesh);return mesh;};
+  // A shallow timber frame, a stack of old sheets, and two visible binder rings.
+  add(new T.Mesh(new T.BoxGeometry(.82,.055,1.06),woodMat),x,y,z);
+  add(new T.Mesh(new T.BoxGeometry(.67,.018,.88),paperMat),x+.038,y,z);
+  const canvas=document.createElement('canvas');canvas.width=720;canvas.height=960;const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#d1c3a4';ctx.fillRect(0,0,720,960);
+  ctx.fillStyle='#8d4c3e';ctx.fillRect(0,0,720,150);
+  ctx.fillStyle='#eadfc6';ctx.font='bold 62px serif';ctx.fillText('八月',42,100);
+  ctx.font='26px sans-serif';ctx.fillText('1998  ·  旧公寓值日表',365,91);
+  const left=42,top=205,cw=91,ch=102;ctx.strokeStyle='#756958';ctx.lineWidth=2;
+  ctx.font='24px sans-serif';ctx.fillStyle='#6c5b4c';['日','一','二','三','四','五','六'].forEach((d,i)=>ctx.fillText(d,left+i*cw+31,top-26));
+  for(let r=0;r<6;r++)for(let c=0;c<7;c++){ctx.strokeRect(left+c*cw,top+r*ch,cw,ch);const day=r*7+c-5;if(day>0&&day<=31){ctx.font='22px sans-serif';ctx.fillStyle=c===0?'#9a4c45':'#625849';ctx.fillText(String(day),left+c*cw+12,top+r*ch+31);if((day===6||day===18||day===27)&&r>0){ctx.strokeStyle='#a05c4d';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(left+c*cw+18,top+r*ch+48);ctx.lineTo(left+c*cw+63,top+r*ch+71);ctx.stroke();ctx.strokeStyle='#756958';ctx.lineWidth=2;}}}
+  ctx.fillStyle='#766451';ctx.font='19px serif';ctx.fillText('缴费 · 晾晒 · 夜间安静',42,887);ctx.fillStyle='#a08e73';ctx.fillRect(42,914,420,3);
+  const calendarTex=new T.CanvasTexture(canvas);calendarTex.colorSpace=T.SRGBColorSpace;calendarTex.anisotropy=4;
+  add(new T.Mesh(new T.PlaneGeometry(.61,.82),new T.MeshStandardMaterial({map:calendarTex,roughness:.92})),x+.052,y,z);
+  const ringMat=new T.MeshStandardMaterial({color:'#777067',metalness:.72,roughness:.32});
+  for(const rz of [-.19,.19]){const ring=new T.Mesh(new T.TorusGeometry(.035,.009,8,18),ringMat);ring.position.set(x+.07,y+.42,z+rz);ring.rotation.set(Math.PI/2,0,0);ring.castShadow=true;group.add(ring);}
+  const curl=new T.Mesh(new T.PlaneGeometry(.11,.09),new T.MeshStandardMaterial({color:'#b3a384',roughness:1}));curl.position.set(x+.061,y-.36,z+.25);curl.rotation.set(0,ry,.22);group.add(curl);
   return group;
 }
 scene.add(leftWallCalendar());
@@ -513,7 +524,7 @@ const inspectData=[
   {id:'door',name:'402 房门',type:'调查对象',position:[2.86,1.45,-3.03],radius:.7,text:'门板没有明显撬动痕迹。锁孔附近有几道很细的金属划痕，肉眼不容易发现。',clue:true,clueText:'线索记录：没有暴力破门，但锁孔附近存在细小划痕。'},
   {id:'photo',name:'墙上旧照片',type:'物件操作',position:[-.18,2.18,-3.79],radius:.45,text:'一张泛黄的走廊照片，纸边已经卷起。木相框挂在墙上，可以移开查看。',clue:false},
   {id:'residents-notice',name:'褪色的住户通知',type:'环境记录',position:[3.48,2.28,2.28],radius:.34,text:'玻璃后是一张褪色的住户通知，字迹已经模糊，只能辨认出“夜间”“请勿喧哗”和一个被涂改的日期。它更像长期贴在这里的公寓告示，没有明显的新近痕迹。',clue:false},
-  {id:'old-calendar',name:'墙上的旧日历',type:'环境记录',position:[-3.48,2.22,1.34],radius:.34,text:'日历停在几年前的某个月，纸张边缘已经卷曲。格子里没有可辨认的记录，只能看出它被挂在这里很久了。',clue:false},
+  {id:'old-calendar',name:'墙上的旧日历',type:'环境记录',position:[-3.48,2.22,1.34],radius:.34,text:'日历停在很久以前的八月，纸张边缘已经卷曲。格子里的手写圈记已经褪色，只能看出它被挂在这里很久了。',clue:false},
   {id:'sink',name:'洗漱台',type:'调查对象',position:[-2.43,1.05,-4.82],radius:.42,text:'水池边缘有一圈未完全干掉的水痕，排水口附近没有积灰。',clue:true,clueText:'线索记录：卫生间最近可能被使用过。'},
   {id:'mirror',name:'旧镜子',type:'环境记录',position:[-2.30,1.82,-4.82],radius:.38,text:'镜面大部分蒙着灰，右下角却有一小块擦拭痕迹。',clue:true,clueText:'调查提示：有人在近期靠近并擦过镜面。'},
   {id:'toilet',name:'马桶水箱',type:'物件操作',position:[-3.18,.76,-5.00],radius:.38,text:'陶瓷盖板搭在水箱上。可以取下盖板，看看里面的结构。',clue:false}
@@ -543,7 +554,25 @@ function makePropMesh(id,pos){
   else if(id==='door-scratch'){mesh=new T.Mesh(new T.BoxGeometry(.05,.16,.012),propMats.metal);}
   else if(id==='diary'){mesh=new T.Mesh(new T.BoxGeometry(.34,.065,.25),new T.MeshStandardMaterial({color:'#6c4e3d',roughness:.9}));}
   else if(id==='blue-paint'){mesh=new T.Mesh(new T.CylinderGeometry(.13,.13,.22,18),propMats.paint);}
-  else if(id==='old-clock'){mesh=new T.Mesh(new T.CylinderGeometry(.16,.16,.035,24),propMats.metal);mesh.rotation.x=Math.PI/2;}
+  else if(id==='old-clock'){
+    const clock=new T.Group();clock.name='stopped-wall-clock';
+    const rim=new T.Mesh(new T.CylinderGeometry(.37,.37,.095,48),new T.MeshStandardMaterial({color:'#47382d',roughness:.72,metalness:.08}));rim.rotation.x=Math.PI/2;clock.add(rim);
+    const brass=new T.Mesh(new T.TorusGeometry(.325,.027,12,48),new T.MeshStandardMaterial({color:'#9b7950',roughness:.34,metalness:.72}));brass.position.z=.052;clock.add(brass);
+    const faceCanvas=document.createElement('canvas');faceCanvas.width=640;faceCanvas.height=640;const fctx=faceCanvas.getContext('2d');
+    fctx.fillStyle='#d8ccb0';fctx.fillRect(0,0,640,640);fctx.strokeStyle='#9f8e70';fctx.lineWidth=5;fctx.strokeRect(12,12,616,616);
+    fctx.fillStyle='#695747';fctx.textAlign='center';fctx.textBaseline='middle';fctx.font='bold 58px serif';
+    for(let n=1;n<=12;n++){const a=n*Math.PI/6;fctx.fillText(String(n),320+Math.sin(a)*245,320-Math.cos(a)*245);}
+    fctx.strokeStyle='#74624e';fctx.lineWidth=4;for(let n=0;n<60;n++){const a=n*Math.PI/30;const r1=n%5===0?270:282;fctx.beginPath();fctx.moveTo(320+Math.sin(a)*r1,320-Math.cos(a)*r1);fctx.lineTo(320+Math.sin(a)*292,320-Math.cos(a)*292);fctx.stroke();}
+    const faceTex=new T.CanvasTexture(faceCanvas);faceTex.colorSpace=T.SRGBColorSpace;faceTex.anisotropy=4;
+    const face=new T.Mesh(new T.CircleGeometry(.298,48),new T.MeshStandardMaterial({map:faceTex,roughness:.82}));face.position.z=.06;clock.add(face);
+    const handMat=new T.MeshStandardMaterial({color:'#3a3029',roughness:.56});
+    const minuteGeometry=new T.BoxGeometry(.018,.22,.018);minuteGeometry.translate(0,.11,0);
+    const minute=new T.Mesh(minuteGeometry,handMat);minute.position.set(0,0,.085);minute.rotation.z=-Math.PI*3/5;clock.add(minute);
+    const hourGeometry=new T.BoxGeometry(.026,.15,.02);hourGeometry.translate(0,.075,0);
+    const hour=new T.Mesh(hourGeometry,handMat);hour.position.set(0,0,.09);hour.rotation.z=-Math.PI/20;clock.add(hour);
+    const pin=new T.Mesh(new T.SphereGeometry(.028,14,8),new T.MeshStandardMaterial({color:'#9b4f43',metalness:.3,roughness:.38}));pin.position.z=.105;clock.add(pin);
+    mesh=clock;
+  }
   if(!mesh)return null;mesh.position.set(...pos);mesh.castShadow=mesh.receiveShadow=true;mesh.userData.caseProp=id;propRoot.add(mesh);return mesh;
 }
 const caseInspectData=[];const casePropMeshes=[];
