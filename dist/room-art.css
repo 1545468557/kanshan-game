@@ -5,3 +5,28 @@
 .inspect-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}.inspect-actions:has(button:not([hidden])){min-height:44px}.inspect-actions button{min-height:44px;border:1px solid #d0ba9550;border-radius:3px;padding:10px 14px;background:#dcc8a7;color:#252c25;font-size:15px}#inspect-return{background:transparent;color:#dbd5c8}.inspect-actions button:disabled{opacity:.6;cursor:wait}#inspect-panel{max-height:calc(100svh - 150px);overflow-y:auto}.memo-copy textarea{font-family:inherit;font-size:16px;line-height:1.8}.art-footer nav{flex-wrap:wrap;justify-content:center}@media(max-width:700px){.art-footer button{padding:10px}.inspect-body #inspect-copy{font-size:16px}#inspect-panel{max-height:42svh;bottom:108px}.art-footer p:after{content:'点击物件观察 · 单指环视 · 双指缩放'}}
 @media(max-width:700px){.art-footer nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;max-width:450px}.art-footer button{white-space:nowrap;padding:10px 6px}#inspect-panel{bottom:150px;max-height:min(42svh,calc(100svh - 260px))}}
 .case-copy{padding:14px 24px 26px;max-height:70svh;overflow:auto}.case-intro{font-size:14px;line-height:1.7;color:#c2c3bb;margin:0 0 14px}.case-question{display:block;border-top:1px solid #bca88633;padding:14px 0}.case-question span{display:block;color:#e2c79b;font-size:15px;margin-bottom:8px}.case-question textarea{display:block;width:100%;min-height:66px;resize:vertical;border:1px solid #c7b28c44;border-radius:3px;background:#121713;color:#eee3d2;padding:10px 12px;font:14px/1.7 inherit;outline:0}.case-question textarea:focus{border-color:#d6b77d99;box-shadow:0 0 0 2px #d6b77d22}.case-actions{display:flex;gap:10px;margin-top:16px}.case-actions button,.diary-nav button{min-height:42px;border:1px solid #d0ba9550;border-radius:3px;padding:9px 14px;background:#dcc8a7;color:#252c25;font-size:14px}.case-actions button:last-child,.diary-nav button{background:transparent;color:#dbd5c8}.case-result{border-left:2px solid #d9b77f;padding:12px 0 12px 12px;color:#e5c895;font-size:14px;line-height:1.8}.diary-copy{padding:20px 24px 24px}.diary-page{min-height:240px;background:#d7c7a4;color:#352e25;padding:26px 24px;box-shadow:0 7px 25px #0004;font-family:'Songti SC',serif}.diary-page h3{margin:0 0 16px;font-size:20px;font-weight:500}.diary-page p{font-size:15px;line-height:2;margin:0;white-space:pre-wrap}.diary-nav{display:flex;justify-content:space-between;align-items:center;margin-top:18px;color:#c7b99f;font-size:13px}.diary-nav button{font-size:13px}.npc-card{border-top:1px solid #bca88633;padding:14px 0}.npc-card h3{margin:0 0 5px;color:#e2c79b;font-size:16px;font-weight:500}.npc-card p{font-size:14px;line-height:1.75;color:#cfd1c9;margin:0 0 10px}.npc-ask{display:flex;gap:8px}.npc-ask input{flex:1;min-width:0;background:#121713;border:1px solid #c7b28c44;border-radius:3px;color:#eee3d2;padding:9px 10px}.npc-ask button{background:#143349;border:1px solid #b8d9e92a;border-radius:3px;padding:8px 12px;color:#e5eef4}
+
+/* CG1 opening sequence */
+#opening-cg{position:fixed;inset:0;z-index:40;background:#05090c;display:grid;place-items:center;opacity:1;transition:opacity .65s ease}
+#opening-cg.is-ending{opacity:0;pointer-events:none}
+#opening-cg video{display:block;width:100%;height:100%;object-fit:cover;background:#05090c}
+#opening-cg-skip{position:absolute;right:24px;bottom:24px;min-height:42px;padding:10px 14px;border:1px solid #ead9bd66;border-radius:3px;background:#0c1110a8;color:#f0e6d7;font-size:13px;backdrop-filter:blur(8px)}
+#opening-cg-skip:hover{background:#30291fbf;border-color:#f5ddad}
+@media (max-width:700px){#opening-cg-skip{right:14px;bottom:14px;font-size:12px;padding:9px 11px}}
+#opening-cg-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-height:48px;padding:12px 20px;border:1px solid #ead9bd99;border-radius:3px;background:#0c1110d9;color:#f0e6d7;font-size:15px;box-shadow:0 8px 30px #0008;backdrop-filter:blur(8px)}
+#opening-cg-play:hover{background:#30291fe8;border-color:#f5ddad}
+#opening-cg.needs-gesture #opening-cg-skip{opacity:.7}
+/* Film-style two-stage transition: fade the CG to black, hold, then reveal the room. */
+#opening-cg{opacity:1;transition:opacity 1.25s ease 1.35s}
+#opening-cg video{opacity:1;transition:opacity 1.35s ease}
+#opening-cg.is-ending video{opacity:0}
+/* No black frame: the frozen door dissolves directly into the first scene. */
+#opening-cg{background:transparent;transition:opacity 1.1s ease}
+#opening-cg video{transition:opacity 1.1s ease}
+#opening-cg.is-ending{opacity:1;pointer-events:none}
+#opening-cg.is-ending video{opacity:0}
+/* Direct dissolve from the preserved 402 door close-up into the first scene. */
+#opening-cg{background:transparent;transition:opacity 1.1s ease}
+#opening-cg video{transition:opacity 1.1s ease}
+#opening-cg.is-ending{opacity:1;pointer-events:none}
+#opening-cg.is-ending video{opacity:0}
