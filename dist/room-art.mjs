@@ -232,9 +232,21 @@ function agedPlasterMaterial(){
   return material;
 }
 const limeUnused=agedPlasterMaterial();
-function surface(w,h,x,y,z,ry,mat=plaster,scale=2.8){
+// One texel density for every wall plane. The calls below used to mix 2.8, 4.1
+// and 4.8 metres per tile, so a 3.5 m wall showed 0.85 of a tile in one place
+// and 1.25 in another. Combined with UVs that always restarted at each plane's
+// own origin, every wall landed on a different blotch of the mottled plaster
+// and the room read as several different wall colours.
+const WALL_TILE=1.8, CEIL_TILE=3;
+function surface(w,h,x,y,z,ry,mat=plaster,scale=WALL_TILE){
   const g=new T.PlaneGeometry(w,h);const uv=g.attributes.uv;
-  for(let i=0;i<uv.count;i++){uv.setXY(i,uv.getX(i)*w/scale,uv.getY(i)*h/scale);}
+  // Anchor the finish to world space rather than to the plane's own origin, so
+  // all the planes that make up one wall sample one continuous plaster field.
+  // The jambs, returns and lintels around the front niche then line up with the
+  // long walls instead of each showing an unrelated slice of the map.
+  const tx=Math.cos(ry),tz=-Math.sin(ry);
+  const uBase=(x*tx+z*tz-w/2)/scale,vBase=(y-h/2)/scale;
+  for(let i=0;i<uv.count;i++){uv.setXY(i,uBase+uv.getX(i)*w/scale,vBase+uv.getY(i)*h/scale);}
   const m=new T.Mesh(g,mat);m.position.set(x,y,z);m.rotation.y=ry;m.castShadow=m.receiveShadow=true;architecture.add(m);return m;
 }
 // Boxes here are load-bearing walls and moulding substrates, never stand-ins
@@ -248,41 +260,41 @@ function structural(w,h,d,x,y,z,mat=wood){
   const m=new T.Mesh(g,mat);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;architecture.add(m);return m;
 }
 const ground=surface(7.5,10,0,-.012,-.65,0,floor,2.65);ground.rotation.x=-Math.PI/2;
-const ceiling=surface(7.5,9.5,0,3.5,-.65,0,lime,4.8);ceiling.rotation.x=Math.PI/2;
-surface(8.5,3.5,-3.75,1.75,-.2,Math.PI/2,lime,2.8);
+const ceiling=surface(7.5,9.5,0,3.5,-.65,0,lime,CEIL_TILE);ceiling.rotation.x=Math.PI/2;
+surface(8.5,3.5,-3.75,1.75,-.2,Math.PI/2,lime,WALL_TILE);
 // Interior finish planes sit a few centimetres inside the structural walls so
 // the textured surface is what the player sees, while the original planes
 // continue to provide collision and occlusion.
-surface(8.5,3.5,-3.695,1.75,-.2,Math.PI/2,lime,2.8);
+surface(8.5,3.5,-3.695,1.75,-.2,Math.PI/2,lime,WALL_TILE);
 // Right wall has a physical window aperture. Only light through it can make
 // the long afternoon shadows across the floor.
-surface(3.6,3.5,3.75,1.75,-2.95,-Math.PI/2,lime,2.8);
-surface(2,3.5,3.75,1.75,2.5,-Math.PI/2,lime,2.8);
-surface(2.05,.85,3.75,.425,.28,-Math.PI/2,lime,2.8);
-surface(2.05,.48,3.75,3.26,.28,-Math.PI/2,lime,2.8);
-surface(3.6,3.5,3.695,1.75,-2.95,-Math.PI/2,lime,2.8);
-surface(2,3.5,3.695,1.75,2.5,-Math.PI/2,lime,2.8);
+surface(3.6,3.5,3.75,1.75,-2.95,-Math.PI/2,lime,WALL_TILE);
+surface(2,3.5,3.75,1.75,2.5,-Math.PI/2,lime,WALL_TILE);
+surface(2.05,.85,3.75,.425,.28,-Math.PI/2,lime,WALL_TILE);
+surface(2.05,.48,3.75,3.26,.28,-Math.PI/2,lime,WALL_TILE);
+surface(3.6,3.5,3.695,1.75,-2.95,-Math.PI/2,lime,WALL_TILE);
+surface(2,3.5,3.695,1.75,2.5,-Math.PI/2,lime,WALL_TILE);
 // Frontal composition: dark side passage, deep centre niche, closed door.
-surface(.32,3.5,-3.59,1.75,-3.18,0,lime,2.8);
-surface(.7,3.5,-1.95,1.75,-3.18,0,lime,2.8);
-surface(1.12,.54,-2.9,3.23,-3.18,0,lime,2.8);
-surface(.52,3.5,1.82,1.75,-3.18,0,lime,2.8);
-surface(.25,3.5,3.62,1.75,-3.18,0,lime,2.8);
-surface(1.31,.55,2.85,3.225,-3.18,0,lime,2.8);
-surface(3.4,.4,-.08,3.3,-3.18,0,lime,2.8);
+surface(.32,3.5,-3.59,1.75,-3.18,0,lime,WALL_TILE);
+surface(.7,3.5,-1.95,1.75,-3.18,0,lime,WALL_TILE);
+surface(1.12,.54,-2.9,3.23,-3.18,0,lime,WALL_TILE);
+surface(.52,3.5,1.82,1.75,-3.18,0,lime,WALL_TILE);
+surface(.25,3.5,3.62,1.75,-3.18,0,lime,WALL_TILE);
+surface(1.31,.55,2.85,3.225,-3.18,0,lime,WALL_TILE);
+surface(3.4,.4,-.08,3.3,-3.18,0,lime,WALL_TILE);
 // The recessed back wall is the surface seen in the close side camera. It
 // must receive the same aged finish as the side walls; otherwise it reads as
 // an unfinished dark-green placeholder behind the actual furnishings.
-surface(3.38,3.1,-.08,1.55,-3.84,0,lime,4.1);
-surface(.66,3.1,-1.77,1.55,-3.51,Math.PI/2,lime,2.8);
-surface(.66,3.1,1.61,1.55,-3.51,-Math.PI/2,lime,2.8);
-const nicheSoffit=surface(3.38,.66,-.08,3.1,-3.51,0,lime,2.8);nicheSoffit.rotation.x=Math.PI/2;
+surface(3.38,3.1,-.08,1.55,-3.84,0,lime,WALL_TILE);
+surface(.66,3.1,-1.77,1.55,-3.51,Math.PI/2,lime,WALL_TILE);
+surface(.66,3.1,1.61,1.55,-3.51,-Math.PI/2,lime,WALL_TILE);
+const nicheSoffit=surface(3.38,.66,-.08,3.1,-3.51,0,lime,WALL_TILE);nicheSoffit.rotation.x=Math.PI/2;
 // The +z end of the main room was open: the right wall stops at z~3.5 and
 // no cross-wall closed the rear, so rear-facing cameras saw the scene
 // background as a blank dark-green wall. Close it with the same aged
 // plaster so every wall reads identically.
-surface(7.5,3.5,0,1.75,4.05,Math.PI,lime,4.1);
-surface(.55,3.5,3.75,1.75,3.775,-Math.PI/2,lime,2.8);
+surface(7.5,3.5,0,1.75,4.05,Math.PI,lime,WALL_TILE);
+surface(.55,3.5,3.75,1.75,3.775,-Math.PI/2,lime,WALL_TILE);
 // Wall treatment: the old plaster is not a single unbroken colour field.
 // These restrained, physical decals and the low skirting catch side light and
 // make the wall read as a used surface even when the camera is close to it.
@@ -369,9 +381,9 @@ function leftWallCalendar(){
 scene.add(leftWallCalendar());
 // The short side passage supplies real parallax and occlusion, not a flat
 // image of another room. It remains part of this single art-review space.
-surface(2.35,3.5,-3.50,1.75,-4.30,Math.PI/2,lime,2.8);
-surface(2.35,3.5,-2.28,1.75,-4.30,-Math.PI/2,lime,2.8);
-surface(1.22,3.5,-2.89,1.75,-5.46,0,lime,2.8);
+surface(2.35,3.5,-3.50,1.75,-4.30,Math.PI/2,lime,WALL_TILE);
+surface(2.35,3.5,-2.28,1.75,-4.30,-Math.PI/2,lime,WALL_TILE);
+surface(1.22,3.5,-2.89,1.75,-5.46,0,lime,WALL_TILE);
 const corridorFill=new T.PointLight('#b7c3a0',.8,4,2);corridorFill.position.set(-2.9,2.6,-4.7);scene.add(corridorFill);
 // Multi-profile door casings and room skirting, restrained faded pink-brown.
 function casing(cx,z,width,height){
