@@ -272,6 +272,17 @@ surface(2.05,.85,3.75,.425,.28,-Math.PI/2,lime,WALL_TILE);
 surface(2.05,.48,3.75,3.26,.28,-Math.PI/2,lime,WALL_TILE);
 surface(3.6,3.5,3.695,1.75,-2.95,-Math.PI/2,lime,WALL_TILE);
 surface(2,3.5,3.695,1.75,2.5,-Math.PI/2,lime,WALL_TILE);
+// v36: the window aperture is not centred on the wall panels around it. The
+// full-height wall stops at z=-1.15 and z=1.5, but the pieces above and below
+// the window are only 2.05 m wide (z -0.745 .. 1.305). That left two full-height
+// slots with no surface at all, and through them the player saw the scene
+// background (#393c34) as a hard dark-green stripe standing beside the window.
+// Fill both slots at the visible finish level and at the structural level, so the
+// wall runs unbroken from the rear panel across to the window frame.
+surface(.405,3.5,3.695,1.75,-.9475,-Math.PI/2,lime,WALL_TILE);
+surface(.195,3.5,3.695,1.75,1.4025,-Math.PI/2,lime,WALL_TILE);
+surface(.405,3.5,3.75,1.75,-.9475,-Math.PI/2,lime,WALL_TILE);
+surface(.195,3.5,3.75,1.75,1.4025,-Math.PI/2,lime,WALL_TILE);
 // Frontal composition: dark side passage, deep centre niche, closed door.
 surface(.32,3.5,-3.59,1.75,-3.18,0,lime,WALL_TILE);
 surface(.7,3.5,-1.95,1.75,-3.18,0,lime,WALL_TILE);
@@ -411,7 +422,11 @@ for(const z of [-.78,.28,1.34])structural(.12,2.18,.065,3.65,1.96,z);
 for(const y of [.87,1.96,3.05])structural(.12,.075,2.22,3.65,y,.28);
 structural(.37,.09,2.40,3.60,.825,.28);structural(.06,2.36,.09,3.7,1.97,-.91);structural(.06,2.36,.09,3.7,1.97,1.47);
 const outside=new T.MeshBasicMaterial({color:'#b5b8a2',side:T.DoubleSide});
-surface(2.3,2.3,4.1,2,.28,-Math.PI/2,outside).castShadow=false;
+// v36: this unlit panel is the "daylight outside" seen through the window. It
+// used to be a 2.3 x 2.3 m square that only just covered the aperture, so any
+// sliver of missing wall around the window showed the scene background instead.
+// Oversize it so every sightline through the aperture lands on it.
+surface(3.4,3.6,4.1,1.9,.2,-Math.PI/2,outside).castShadow=false;
 // Single panelled apartment door, constructed as a continuous frame with
 // stepped inset panels and hardware rather than a blank rectangular slab.
 const doorwood=new T.MeshStandardMaterial({color:'#94705a',normalMap:wood.normalMap,roughnessMap:wood.roughnessMap,roughness:.9,normalScale:new T.Vector2(.38,.38)});
