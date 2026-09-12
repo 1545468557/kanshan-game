@@ -337,7 +337,10 @@ function wallNotice(){
   const lineMat=new T.MeshBasicMaterial({color:'#655d4c',transparent:true,opacity:.56});
   const add=(mesh,x,y,z,ry=0)=>{mesh.position.set(x,y,z);mesh.rotation.y=ry;mesh.castShadow=mesh.receiveShadow=true;group.add(mesh);return mesh;};
   const x=3.705,y=2.28,z=2.28,ry=-Math.PI/2;
-  add(new T.Mesh(new T.BoxGeometry(.95,.045,1.28),frameMat),x,y,z,ry);
+  // v35: the backing board had its height and depth swapped (.045 tall, 1.28
+  // deep), so it read as a shelf jutting ~1.3 m into the room through the
+  // notice. BoxGeometry is (width along wall, height, depth off the wall).
+  add(new T.Mesh(new T.BoxGeometry(.95,1.28,.045),frameMat),x,y,z,ry);
   add(new T.Mesh(new T.PlaneGeometry(.77,1.10),paperMat),x-.028,y,z,ry);
   add(new T.Mesh(new T.PlaneGeometry(.78,1.11),glassMat),x-.052,y,z,ry);
   for(const [dy,w] of [[.36,.53],[.16,.66],[-.06,.62],[-.28,.48]]){
