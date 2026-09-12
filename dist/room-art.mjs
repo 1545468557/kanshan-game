@@ -84,10 +84,10 @@ document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',(
 }));
 // v38: 观察镜头 / 在场的人 / 主角日记 / 净览 were removed from the toolbar at the
 // user's request; it now holds only 我的解释 and 备忘录. The observer is entered by
-// walking up to an object or person in the room (they are still clickable — see
-// updatePointer / openInspection) and left with Escape or 回到刘看山. clean() is kept
-// only because the Escape handler still calls it, so the lookup is guarded.
-const clean=on=>{document.body.classList.toggle('clean',on);const show=$('ui-show');if(show)show.hidden=!on;};
+// walking up to an object or person in the room (both are still clickable — see
+// updatePointer / openInspection) and left with Escape or 回到刘看山. clean() has no
+// trigger left; the Escape handler still calls it to clear the class.
+const clean=on=>{document.body.classList.toggle('clean',on);};
 $('credits-open').onclick=()=>{$('credits').showModal();$('credits-close').focus();};
 $('credits-close').onclick=()=>$('credits').close();
 const characterCredit=document.createElement('p');
