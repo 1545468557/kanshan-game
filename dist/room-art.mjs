@@ -82,8 +82,12 @@ document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',(
   const id=b.dataset.view==='entry'&&cistern?'toilet':b.dataset.view==='photo'&&wallPhoto?'photo':b.dataset.view==='cabinet'&&drawer?'cabinet':null;
   if(id)openInspection(inspectData.find(item=>item.id===id),false);else $('inspect-panel').hidden=true;
 }));
-const clean=on=>{document.body.classList.toggle('clean',on);$('ui-show').hidden=!on;};
-$('ui-hide').onclick=()=>clean(true);$('ui-show').onclick=()=>clean(false);
+// v38: 观察镜头 / 在场的人 / 主角日记 / 净览 were removed from the toolbar at the
+// user's request; it now holds only 我的解释 and 备忘录. The observer is entered by
+// walking up to an object or person in the room (they are still clickable — see
+// updatePointer / openInspection) and left with Escape or 回到刘看山. clean() is kept
+// only because the Escape handler still calls it, so the lookup is guarded.
+const clean=on=>{document.body.classList.toggle('clean',on);const show=$('ui-show');if(show)show.hidden=!on;};
 $('credits-open').onclick=()=>{$('credits').showModal();$('credits-close').focus();};
 $('credits-close').onclick=()=>$('credits').close();
 const characterCredit=document.createElement('p');
@@ -116,7 +120,7 @@ $('case-submit').onclick=()=>{const scores=blueBloodCase.questions.map(q=>scoreA
 
 let diaryPage=0;const diary=$('diary');
 function renderDiary(){const page=blueBloodCase.diary[diaryPage];$('diary-page').innerHTML=`<h3>${page.date} · ${page.title}</h3><p>${page.text}</p>`;$('diary-index').textContent=`${diaryPage+1} / ${blueBloodCase.diary.length}`;$('diary-prev').disabled=diaryPage===0;$('diary-next').disabled=diaryPage===blueBloodCase.diary.length-1;}
-$('diary-open').onclick=()=>{diaryPage=0;renderDiary();diary.showModal();};$('diary-close').onclick=()=>diary.close();$('diary-prev').onclick=()=>{diaryPage=Math.max(0,diaryPage-1);renderDiary();};$('diary-next').onclick=()=>{diaryPage=Math.min(blueBloodCase.diary.length-1,diaryPage+1);renderDiary();};
+$('diary-close').onclick=()=>diary.close();$('diary-prev').onclick=()=>{diaryPage=Math.max(0,diaryPage-1);renderDiary();};$('diary-next').onclick=()=>{diaryPage=Math.min(blueBloodCase.diary.length-1,diaryPage+1);renderDiary();};
 
 const npcBoard=$('npc-board');
 function renderNPCs(id){
@@ -138,7 +142,7 @@ function npcReply(person,text){
   if(/教具|箱子|瓶|来源/.test(t))return '教具箱是我送来的，蓝色液体和假伤口贴片都在里面。其他的，我没有动。';
   return person.opening;
 }
-$('npc-open').onclick=()=>{renderNPCs();npcBoard.showModal();};$('npc-close').onclick=()=>npcBoard.close();
+const npcClose=$('npc-close');if(npcClose)npcClose.onclick=()=>npcBoard.close();
 $('npc-copy').addEventListener('click',e=>{const button=e.target.closest('[data-ask-npc]');if(!button)return;const person=blueBloodCase.npc.find(item=>item.id===button.dataset.askNpc);const input=document.querySelector(`input[data-npc="${person.id}"]`);const answer=document.querySelector(`[data-npc-answer="${person.id}"]`);answer.textContent=npcReply(person,input.value);answer.hidden=false;input.value='';});
 document.addEventListener('keydown',e=>{
   if(modalOpen()||e.target.closest?.('textarea,input,[contenteditable=true]')||e.ctrlKey||e.metaKey||e.altKey)return;
@@ -640,7 +644,8 @@ const cisternMeshes=[];
 cistern.root.traverse(o=>{if(o.isMesh){o.userData.inspect=inspectData.find(item=>item.id==='toilet');cisternMeshes.push(o);}});
 const photoMeshes=[];
 wallPhoto?.root.traverse(o=>{if(o.isMesh){o.userData.inspect=inspectData.find(item=>item.id==='photo');photoMeshes.push(o);}});
-if(!wallPhoto)document.querySelector('[data-view="photo"]').disabled=true;
+// v38: the camera menu is gone, so this only guards when the preset button still exists.
+if(!wallPhoto){const photoButton=document.querySelector('[data-view="photo"]');if(photoButton)photoButton.disabled=true;}
 const drawerMeshes=[];
 drawer.root.traverse(o=>{if(o.isMesh){o.userData.inspect=inspectData.find(item=>item.id==='cabinet');drawerMeshes.push(o);}});
 const npcMeshes=[];
