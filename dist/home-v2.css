@@ -1,5 +1,6 @@
 /* The archive belongs to the whole game; the apartment belongs to chapter one. */
 .world{background-image:url('./assets/story-archive-menu.png');transition:opacity .5s ease;background-position:center center}
+.world{position:fixed;inset:0;overflow:hidden}.world-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;display:block}
 .shade{background:linear-gradient(90deg,rgba(3,10,17,.88),rgba(3,10,17,.52) 37%,rgba(3,10,17,.04) 72%),linear-gradient(0deg,#050c13 0%,transparent 40%,transparent 85%,#050c1370)}
 .archive-hotspot{top:48%;left:auto;right:11%;border-color:#78bcd94a;background:#0c223069}
 .archive-hotspot .crosshair{color:#abdff5}.archive-hotspot:hover{background:#173b4bc4}
