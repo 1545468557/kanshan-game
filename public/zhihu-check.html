@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>回调地址对表 · 故事档案馆</title>
+    <!-- 这一页是给**我们自己**用的工具页，不是作品的一部分：
+         它把「活动页那一栏到底该填什么」和「填完有没有对上」放在同一屏里。
+         刻意不挂登录门（没有 data-gate），也不引任何外部资源。 -->
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; padding: 30px 22px 70px;
+        background: radial-gradient(130% 120% at 50% -10%, #0c1e2f, #03080e 72%);
+        color: #dbe6ee; min-height: 100vh;
+        font-family: "Noto Sans SC", system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+        line-height: 1.75; font-size: 14.5px;
+      }
+      .wrap { width: min(760px, 100%); margin: 0 auto; }
+      .kicker { margin: 0 0 6px; font-size: 11.5px; letter-spacing: .22em; color: #75c6ff; }
+      h1 { margin: 0 0 10px; font-size: 25px; font-weight: 600; color: #f2f7fa; line-height: 1.4; }
+      .lead { margin: 0 0 26px; color: #c3d3de; }
+      section {
+        border: 1px solid #ffffff26; border-left: 2px solid #0084ff;
+        background: #08131ff2; padding: 20px 22px; margin: 0 0 18px;
+      }
+      h2 { margin: 0 0 12px; font-size: 15px; font-weight: 600; color: #f2f7fa; letter-spacing: .04em; }
+      h2 span { color: #75c6ff; margin-right: 8px; }
+      p { margin: 0 0 12px; color: #c3d3de; }
+      p:last-child { margin-bottom: 0; }
+      code { background: #ffffff14; padding: 1px 5px; border-radius: 2px; font-size: 13px; color: #e7f1f8; }
+      .field { display: flex; gap: 10px; align-items: stretch; margin: 0 0 10px; flex-wrap: wrap; }
+      #callback {
+        flex: 1 1 340px; min-width: 0; background: #040c15; border: 1px solid #ffffff2e;
+        color: #eaf4fb; padding: 12px 13px; font-size: 13.5px; border-radius: 2px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .01em;
+      }
+      #callback:focus { outline: 2px solid #75c6ff; outline-offset: 1px; }
+      button {
+        border: 0; border-radius: 2px; background: #0084ff; color: #fff;
+        padding: 12px 20px; font-size: 14px; letter-spacing: .06em; cursor: pointer;
+        font-family: inherit; transition: background .2s;
+      }
+      button:hover { background: #1a92ff; }
+      button:focus-visible { outline: 2px solid #75c6ff; outline-offset: 2px; }
+      .meta { font-size: 12.5px; color: #92a6b4; letter-spacing: .04em; }
+      .meta b { color: #cfe2ef; font-weight: 600; }
+      ol, ul { margin: 0 0 12px; padding-left: 22px; }
+      li { margin: 0 0 7px; color: #c3d3de; }
+      li b { color: #eaf4fb; }
+      a.try {
+        display: block; border: 1px solid #ffffff26; border-left: 2px solid #75c6ff;
+        padding: 13px 15px; margin: 0 0 10px; color: #dbe6ee; text-decoration: none;
+        transition: border-color .2s, background .2s;
+      }
+      a.try:hover { border-color: #75c6ff; background: #75c6ff12; }
+      a.try strong { display: block; color: #eaf4fb; font-weight: 600; margin-bottom: 3px; }
+      a.try small { color: #92a6b4; font-size: 12.5px; line-height: 1.7; display: block; }
+      .verdict { border-left-color: #75c6ff; background: #0b1c2e; }
+      .verdict.ok { border-left-color: #43b96a; }
+      .verdict.bad { border-left-color: #ff6b6b; }
+      .verdict h2 { margin-bottom: 8px; }
+      .verdict p { color: #e7f1f8; }
+      .hide { display: none; }
+      table { border-collapse: collapse; width: 100%; font-size: 13px; }
+      td { padding: 6px 0; border-bottom: 1px solid #ffffff14; vertical-align: top; }
+      td:first-child { color: #92a6b4; white-space: nowrap; padding-right: 14px; }
+      td:last-child { color: #e7f1f8; word-break: break-all; font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <p class="kicker">故事档案馆 · 知乎登录</p>
+      <h1>回调地址对表</h1>
+      <p class="lead">
+        知乎只认活动页那一栏登记的地址，而它与我们发出去的必须<b>一个字符都不差</b>。
+        对不上的时候，知乎只会回一句「出错了！请稍后再试。」，永远不告诉你哪个字不对。
+        这一页把「该填什么」和「填完有没有对上」放在同一屏里。
+      </p>
+
+      <!-- 结果横幅：由地址栏里的 ?zhihu=… 直接翻译成人话。
+           这是这一页存在的主要理由 —— 「能不能跳回我们自己的站」本身就是答案。 -->
+      <section class="verdict hide" id="verdict">
+        <h2>刚才那一次的结果</h2>
+        <p id="verdict-text"></p>
+      </section>
+
+      <section>
+        <h2><span>①</span>把这一行填进活动页</h2>
+        <div class="field">
+          <input id="callback" readonly spellcheck="false" aria-label="要填进活动页的回调地址" />
+          <button type="button" id="copy">复制</button>
+        </div>
+        <p class="meta" id="fingerprint">正在向服务器核对…</p>
+        <ol>
+          <li>打开知乎活动页 → 我的项目 → 我们的队伍 → 项目详情 → <b>编辑</b>。</li>
+          <li>找到「<b>知乎登录回调地址</b>」（有的界面写作「跳转地址」）。</li>
+          <li>把上面这一行<b>整段替换</b>进去。<b>结尾不要加斜杠</b>，前后不要留空格。</li>
+          <li>保存。</li>
+        </ol>
+        <p class="meta">
+          提示：如果那一栏原本写的是 <code>www.zhihu.com/ring/…</code>，
+          那是平台给的示例值，必须换成上面这一行，否则授权码会落在知乎那边，我们永远收不到。
+        </p>
+      </section>
+
+      <section>
+        <h2><span>②</span>填完以后，一个一个点，每点一个回来看横幅</h2>
+        <p>
+          这三个链接的差别只在「我们向知乎声明哪个回调地址」，其余完全一样。
+          <b>哪个能带着你回到本站，那一栏里写的就是哪个。</b>
+        </p>
+        <a class="try" href="./api/auth/zhihu/start?next=/zhihu-check.html">
+          <strong>1 · 我们的正式回调地址（应该点这个）</strong>
+          <small>能回到本站 → 对上了，直接用它登录。</small>
+        </a>
+        <a class="try" href="./api/auth/zhihu/start?try=root&amp;next=/zhihu-check.html">
+          <strong>2 · 站点根地址</strong>
+          <small>只有它能回来 → 那一栏里填的是站点根，把它改成第 1 条的字符串。</small>
+        </a>
+        <a class="try" href="./api/auth/zhihu/start?try=docs&amp;next=/zhihu-check.html">
+          <strong>3 · 知乎那个示例地址</strong>
+          <small>只有它能回来 → 那一栏压根没改过，还是平台给的示例值。</small>
+        </a>
+        <p class="meta">
+          三个都不行（每次都停在知乎的红字上、回不来）→ 问题不在这一栏，
+          是应用本身还没开通，需要找赛事组织者。
+        </p>
+      </section>
+
+      <section>
+        <h2><span>③</span>如果三个链接都停在知乎的红字上</h2>
+        <p>
+          那说明知乎认的回调地址<b>不是我们发出去的那一个</b>，授权码落在了别的地方。
+          没关系 —— <b>它就在浏览器地址栏里</b>，把它搬回来，登录照样能完成。
+        </p>
+        <ol>
+          <li>点上面第 <b>3</b> 个链接（用知乎那个示例地址去授权），把授权走完。</li>
+          <li>授权成功后你会停在知乎的某个页面上。<b>看浏览器最上面的地址栏</b>，
+            里面应该有一段 <code>authorization_code=……</code>。</li>
+          <li>把那<b>整条网址</b>复制下来，粘进下面这个框。</li>
+        </ol>
+        <div class="field">
+          <input id="manual" spellcheck="false" placeholder="把整条网址粘到这里（或只粘 authorization_code 后面那一段）" aria-label="粘贴回跳的整条网址" />
+          <button type="button" id="manual-go">完成登录</button>
+        </div>
+        <p class="meta" id="manual-note">
+          提醒：这一段是<b>一次性的登录凭证</b>，只会发给我们自己的服务器，
+          不会显示在页面上，也不会写进日志 —— 请不要把它粘到聊天窗口或截图里。
+        </p>
+      </section>
+
+      <section>
+        <h2><span>④</span>我们这一侧的实际情况</h2>
+        <table id="selfcheck"><tbody><tr><td>状态</td><td>正在读取…</td></tr></tbody></table>
+        <p class="meta" style="margin-top:12px">
+          这张表里的值可直接用 <code>./api/auth/zhihu/config</code> 这条接口取到，不含任何密钥。
+        </p>
+      </section>
+
+      <section>
+        <h2><span>⑤</span>不管登录修没修好，作品都能玩</h2>
+        <p>
+          登录门上留了「先以访客身份进入」这个出口，所以即使知乎那边一直不通，
+          评委和玩家照样能进档案馆、能把第一章查完 —— 只是不会被记进「登录人数」。
+        </p>
+        <p class="meta">
+          <a href="./" style="color:#75c6ff">← 回首页</a>
+        </p>
+      </section>
+    </div>
+
+    <script>
+      // ---- 结果横幅：把 ?zhihu=… 翻译成人话 ----
+      //
+      // 为什么值得专门做：修这一栏的难点不是「填什么」，而是「填完看不出对没对」。
+      // 知乎的报错没有信息量，但从知乎能**跳回我们自己的域名**，本身就是一个强信号 ——
+      // 说明回调地址这一栏是对的，问题出在别处。把这句话直接写给看页面的人，
+      // 就不需要他再做任何判断。
+      var VERDICTS = {
+        '': null,
+        unconfigured: ['bad', '服务器上还没配好 App ID / App Key。这是部署问题，不是那一栏的问题。'],
+        denied: ['ok', '你回到本站了 —— 说明回调地址这一栏是对的。这次是你在知乎那边点了「拒绝授权」，再点一次并选择同意即可。'],
+        bad_state: ['ok', '你回到本站了 —— 说明回调地址这一栏是对的。只是我们这边的会话 cookie（bb_oauth_state）没被带回来，通常是因为换了浏览器或打开了新的无痕窗口：请从原标签页点登录、中途不要换窗口。'],
+        no_code: ['ok', '你回到本站了 —— 说明回调地址这一栏是对的。但这次没带授权码回来，通常是授权被取消，重试一次即可。'],
+        exchange_failed: ['bad', '你回到本站了 —— 说明回调地址这一栏是对的。拿到授权码了，但用它去换 token 那一步失败了，问题在 App Key 或应用权限，需要找组织者。']
+      };
+
+      function showVerdict() {
+        var params = new URLSearchParams(location.search);
+        if (params.get('logout') === '1') {
+          verdict('', '已退出登录。');
+          return;
+        }
+        var key = params.get('zhihu');
+        if (key === null) return;
+        var row = VERDICTS[key];
+        if (!row) return;
+        verdict(row[0], row[1]);
+      }
+
+      function verdict(kind, text) {
+        var box = document.getElementById('verdict');
+        var body = document.getElementById('verdict-text');
+        box.classList.remove('hide', 'ok', 'bad');
+        if (kind) box.classList.add(kind);
+        body.textContent = text;
+      }
+
+      // ---- 第 ① 节：把「该填的那一行」显示出来，并给出长度 / 指纹 ----
+      function renderCallback(info) {
+        var input = document.getElementById('callback');
+        var meta = document.getElementById('fingerprint');
+        if (info.redirectUri && info.redirectUri.indexOf('按访问域名推导') !== 0) {
+          input.value = info.redirectUri;
+        } else {
+          // 没配固定地址时，界面上的地址就是权威答案（和服务端推导出来的同一个）。
+          input.value = location.origin + '/api/auth/zhihu/callback';
+        }
+        meta.innerHTML = '共 <b>' + input.value.length + '</b> 个字符 · 指纹 <b>'
+          + String(info.redirectUriFingerprint || '（未固定，按访问域名推导）') + '</b>'
+          + ' · 结尾<b>没有</b>斜杠';
+      }
+
+      function renderSelfCheck(info) {
+        var rows = [
+          ['登录功能', info.enabled ? '已启用' : '未启用'],
+          ['App Key', info.status || '—'],
+          ['回调地址', info.redirectUri || '—'],
+          ['字符数', String(info.redirectUriLength || 0)],
+          ['指纹', info.redirectUriFingerprint || '（未固定）'],
+          ['接受的路径', (info.callbackPaths || []).join('  ')],
+          ['万能兜底', info.callbackCatchAll ? '开（域名上任何像回调的路径都接，含尾斜杠）' : '关']
+        ];
+        var html = '';
+        for (var i = 0; i < rows.length; i += 1) {
+          html += '<tr><td>' + rows[i][0] + '</td><td>' + escapeHtml(rows[i][1]) + '</td></tr>';
+        }
+        document.getElementById('selfcheck').innerHTML = '<tbody>' + html + '</tbody>';
+      }
+
+      function escapeHtml(text) {
+        return String(text).replace(/[&<>"]/g, function (ch) {
+          return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[ch];
+        });
+      }
+
+      function copy() {
+        var input = document.getElementById('callback');
+        input.select();
+        var done = function () {
+          var button = document.getElementById('copy');
+          button.textContent = '已复制';
+          setTimeout(function () { button.textContent = '复制'; }, 1600);
+        };
+        // clipboard API 只在安全上下文可用；手机上从局域网 IP 打开时不是，
+        // 所以要留 execCommand 这条老路，别让按钮点了没反应。
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(input.value).then(done, function () {
+            try { document.execCommand('copy'); done(); } catch (e) { /* 让用户手动选 */ }
+          });
+          return;
+        }
+        try { document.execCommand('copy'); done(); } catch (e) { /* 让用户手动选 */ }
+      }
+
+      // ---- 第 ③ 节：把落在别处的授权码人工搬回来 ----
+      //
+      // 这条路只在**同一个浏览器**里有效：服务端要求 10 分钟内签发的那张
+      // state cookie 还在（它是 httponly 的，脚本读不到，但会自动随请求带上）。
+      // 所以它不是绕过登录，只是把同一趟授权换一种方式接住。
+      function finishManual() {
+        var input = document.getElementById('manual');
+        var button = document.getElementById('manual-go');
+        var note = document.getElementById('manual-note');
+        var value = String(input.value || '').trim();
+        if (!value) {
+          note.textContent = '先把授权后那条网址粘进来。';
+          return;
+        }
+        button.disabled = true;
+        note.textContent = '正在向知乎换取登录凭证…';
+        fetch('./api/auth/zhihu/manual', {
+          method: 'POST',
+          headers: {'content-type': 'application/json', 'accept': 'application/json'},
+          body: JSON.stringify({input: value})
+        }).then(function (res) { return res.json(); }).then(function (out) {
+          if (out && out.ok) {
+            note.textContent = '登录成功，正在刷新…';
+            input.value = '';
+            setTimeout(function () { location.href = out.next || './zhihu-check.html'; }, 900);
+            return;
+          }
+          button.disabled = false;
+          var why = {
+            bad_state: '这张 state cookie 对不上了（多半是换了标签页/窗口，或超过了 10 分钟）。请从上面第 3 个链接重新走一遍授权。',
+            no_code: '这段内容里没找到授权码。整条网址里应该有一段 authorization_code=……',
+            exchange_failed: '拿到授权码了，但换 token 失败 —— 这通常是应用权限或 App Key 的问题，需要找赛事组织者。',
+            unconfigured: '服务器上还没配好 App ID / App Key。'
+          }[out && out.reason] || ('没能完成：' + ((out && out.reason) || '未知原因'));
+          note.innerHTML = escapeHtml(why);
+        }).catch(function (error) {
+          button.disabled = false;
+          note.textContent = '请求没能发出去：' + (error && error.message ? error.message : error);
+        });
+      }
+
+      document.getElementById('manual-go').addEventListener('click', finishManual);
+      document.getElementById('manual').addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') finishManual();
+      });
+
+      document.getElementById('copy').addEventListener('click', copy);
+      showVerdict();
+
+      // 顺带问一下登录状态：如果已经是登录态，就不用再修这一栏了。
+      Promise.all([
+        fetch('./api/auth/zhihu/config', {headers: {'accept': 'application/json'}}).then(function (res) { return res.json(); }),
+        fetch('./api/auth/me', {headers: {'accept': 'application/json'}}).then(function (res) { return res.json(); })
+      ]).then(function (out) {
+        var info = out[0] || {};
+        var me = out[1] || {};
+        renderCallback(info);
+        renderSelfCheck(info);
+        if (me.loggedIn) verdict('ok', '当前已经是登录状态 —— 说明整条登录链路是通的。');
+      }).catch(function (error) {
+        document.getElementById('fingerprint').textContent = '读不到服务器信息：' + (error && error.message ? error.message : error);
+      });
+    </script>
+  </body>
+</html>

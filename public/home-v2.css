@@ -1,0 +1,41 @@
+/* The archive belongs to the whole game; the apartment belongs to chapter one. */
+.world{background-image:url('./assets/story-archive-menu.jpg');transition:opacity .5s ease;background-position:center center}
+/* 首页背景循环视频（来自 PR 分支 feature/cg1-audio-final / 22ddf4e7）。
+   video 铺满整个 .world，poster 用瘦身后的 .jpg 而非 .png。 */
+.world{position:fixed;inset:0;overflow:hidden}.world-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;display:block}
+.shade{background:linear-gradient(90deg,rgba(3,10,17,.88),rgba(3,10,17,.52) 37%,rgba(3,10,17,.04) 72%),linear-gradient(0deg,#050c13 0%,transparent 40%,transparent 85%,#050c1370)}
+.archive-hotspot{top:48%;left:auto;right:11%;border-color:#78bcd94a;background:#0c223069}
+.archive-hotspot .crosshair{color:#abdff5}.archive-hotspot:hover{background:#173b4bc4}
+.archive-hotspot>span:last-child{font-family:inherit;letter-spacing:.12em}
+.whisper{top:70%;right:6%;color:#b7cddd}
+.chapter-one .world{background-image:url('./assets/apartment-menu.jpg')}
+.chapter-one .archive-hotspot,.chapter-one .whisper{visibility:hidden}
+.chapter-one dialog{background:linear-gradient(145deg,#14212feb,#081018ed)}
+.chapter-one dialog::backdrop{background:#02080f70;backdrop-filter:blur(2px)}
+.scene-feedback{font-size:14px;color:#d1c2a3;min-height:24px;line-height:1.7}
+.prologue-art{height:190px;object-position:73% 60%}
+@media(max-width:1000px){.world{background-position:62% center}.archive-hotspot{right:2%}.whisper{font-size:12px;right:0}}
+@media(max-width:600px){.world{background-position:68% center}.shade{background:linear-gradient(90deg,#040c14ed,#040c1465),linear-gradient(0deg,#050c13 1%,#050c1300 70%)}.archive-hotspot{display:none}.prologue-art{height:150px}}
+
+/* ——— 背景动效：改成「图片自己缓慢推近」，不再依赖下载一段视频 ———
+   为什么改：原来只靠一个 1 MB 的 MP4 循环播。公网上实测 —— 浏览器发出这个请求后
+   **16.9 秒才拿到响应头，之后 38 秒内一个字节都没到**（readyState 卡在 0、networkState=2
+   表示还在等），而同一时刻用 curl 走同一条链路 1.5 秒就能下完 1 MB。
+   也就是说服务器和编码都没问题（H.264 是对的），是「流式拉一个 1 MB 视频」在网关这一层
+   排不过队。结果首页只剩静止的封面图，看起来就像「没有背景视频」。
+   现在底层改由 CSS 推镜驱动：零额外下载、无编解码、无自动播放策略，
+   Windows / macOS / 手机 / 任何浏览器表现一致。视频若能真播再叠加（见 menu.js）。
+   .world 自己那张背景图保留不动 —— 它是视频没就绪时的兜底，也就是第一帧。 */
+.world-drift{position:absolute;inset:-6%;z-index:0;background-image:url('./assets/story-archive-menu.jpg');background-size:cover;background-position:center center;animation:world-drift 52s ease-in-out infinite alternate;will-change:transform}
+@keyframes world-drift{from{transform:scale(1.02) translate3d(0,0,0)}to{transform:scale(1.14) translate3d(-2%,-1.2%,0)}}
+/* 进入第一章时背景换成公寓，推镜层要跟着换，否则会盖住 */
+.chapter-one .world-drift{background-image:url('./assets/apartment-menu.jpg')}
+/* 窄屏的取景位置与 .world 保持一致，否则两层会错开 */
+@media(max-width:1000px){.world-drift{background-position:62% center}}
+@media(max-width:600px){.world-drift{background-position:68% center}}
+/* 视频只在**真的开始播**了才显示（menu.js 收到 playing 事件后加 .is-playing）。
+   拿不到数据时它是全透明的，露出下面会动的图，而不是一块静止封面。 */
+.world-video{z-index:1;opacity:0;transition:opacity 1s ease}
+.world-video.is-playing{opacity:1}
+/* 关掉「界面动态」、或系统开了「减弱动态效果」时不推镜（html.no-motion 由 menu.js 维护） */
+html.no-motion .world-drift{animation:none}

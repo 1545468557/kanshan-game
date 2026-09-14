@@ -1,0 +1,284 @@
+/* 首页特效与刘看山。只在预览页加载，确认满意之后再合并进 menu.css / home-v2.css。
+   设计原则：所有动画都走 transform / opacity / background-position，
+   不碰布局属性，避免把已有的排版推歪。 */
+
+/* ---- 0. 层级约定 ----
+   menu.css 里 .world / .shade / .grain 都是 position:fixed，其中 .grain 是 z-index:1。
+   .shell 是 position:relative 但 z-index 是 auto —— 也就是说：
+     · z-index:1 的特效层会盖到标题和菜单**上面**（文字上飘灰，很难看）；
+     · z-index:0 的特效层和 .shell 同层，靠 DOM 顺序决定前后，我们把它们放在 .shell **之前**，
+       于是它们稳定地落在内容下面。
+   所以三张特效层统一 z-index:0，别改成 1。 */
+#fx-dust, .fx-light, .fx-scan { position: fixed; inset: 0; z-index: 0; pointer-events: none }
+/* canvas 是替换元素：只写 inset:0 时 width 会退回固有尺寸 300×150，必须显式撑满 */
+#fx-dust { width: 100%; height: 100%; display: block }
+
+/* ---- 1. 背景视差 ----
+   .world 的 arrival 动画（menu.css）用的是 transform，直接再写 transform 会被动画盖住；
+   但 animation 只动 transform 和 opacity，**不动 background-position** ——
+   所以视差走 background-position，和原动画互不打架。
+   同时把 arrival 的终态从 1.035 放大到 1.065，给位移留出边距，不然背景会露边。 */
+@keyframes arrival {
+  from { transform: scale(1.10); opacity: .5 }
+  to   { transform: scale(1.065); opacity: 1 }
+}
+/* 不给 background-position 加 transition：home-fx.js 已经每帧做了缓动，
+   两层平滑叠在一起会拖出半秒的迟滞感。 */
+.world {
+  background-position: calc(50% + (var(--px, 0) * -10px)) calc(50% + (var(--py, 0) * -6px));
+}
+/* menu.css 在窄屏把背景挪到 62% / 68%，好让台灯留在画面里。
+   那两条规则写在本文件之前，会被上面这条同优先级的规则整条盖掉 ——
+   所以这里必须把基准百分比原样接回来，只把视差项续在后面。 */
+@media (max-width: 1000px) {
+  .world { background-position: calc(62% + (var(--px, 0) * -8px)) calc(50% + (var(--py, 0) * -5px)) }
+}
+@media (max-width: 600px) {
+  .world { background-position: calc(68% + (var(--px, 0) * -6px)) calc(50% + (var(--py, 0) * -4px)) }
+}
+
+/* ---- 2. 台灯呼吸 + 桌面反光 ----
+   先说清楚背景到底是什么：这一页的背景来自 home-v2.css 的 .world，用的是
+   story-archive-menu.jpg —— 那是**书房**（1672×941，满墙书架、木桌、右下角一盏
+   黄铜台灯），不是什么走廊门灯。
+   （别把两张图搞反：`apartment-menu.jpg` 是「走廊 + 402 号门」，旧版 menu.css 的
+   兜底图，也是章节卡与序幕的配图。）
+   坐标 (82% 46%) 是量出来的，而且**两种画幅都对得上**：
+     · 桌面 1440×900 时 cover 会横向裁掉约 5%，台灯正落在 81% / 44%；
+     · 手机 390×844 时 cover 裁到只剩原图中段（原图 x 37%~63% 那一条），
+       画面里那盏灯映射到视口的 95% / 50%……但 82%/46% 这个点在手机上照样压在
+       画面右侧那团暖光上，且不会跑到书架暗部去。
+   挑这个数就是为了「两边都不难看」，换画幅时别再随手左右挪。 */
+.fx-light {
+  mix-blend-mode: screen;
+  opacity: calc(.82 + var(--flick, 0) * .18);
+  background:
+    radial-gradient(32% 27% at 82% 46%, rgba(255, 214, 150, .36), rgba(255, 190, 120, .12) 47%, transparent 76%),
+    radial-gradient(48% 22% at 80% 66%, rgba(255, 176, 96, .24), transparent 74%);
+}
+/* 蓝色线索光：一条极淡的斜向扫描，给「正在调查」的感觉 */
+.fx-scan {
+  mix-blend-mode: screen; opacity: .5;
+  background: linear-gradient(102deg, transparent 38%, rgba(117,198,255,.11) 49%, rgba(160,225,255,.16) 50%, rgba(117,198,255,.11) 51%, transparent 62%);
+  background-size: 260% 100%;
+  animation: fx-sweep 9s ease-in-out infinite;
+}
+@keyframes fx-sweep {
+  0%, 100% { background-position: 130% 0 }
+  50%      { background-position: -30% 0 }
+}
+
+/* ---- 3. 标题：关键线索 的蓝色扫光 ---- */
+.opening h1 em {
+  background: linear-gradient(96deg, #75c6ff 0%, #dff1ff 34%, #8fd2ff 52%, #75c6ff 100%);
+  background-size: 320% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+  animation: fx-shimmer 7.5s ease-in-out infinite;
+}
+@keyframes fx-shimmer {
+  0%, 100% { background-position: 0% 0 }
+  50%      { background-position: 100% 0 }
+}
+/* 副标题前那一小截竖线改成会呼吸的蓝，和标题呼应 */
+.eyebrow i { animation: fx-pulse 3.6s ease-in-out infinite }
+@keyframes fx-pulse {
+  0%, 100% { opacity: .45; width: 18px }
+  50%      { opacity: 1;   width: 34px }
+}
+
+/* ---- 4. 主按钮：一层跟随鼠标的柔光 ---- */
+.menu .primary { position: relative; overflow: hidden; isolation: isolate }
+.menu .primary::after {
+  content: ''; position: absolute; inset: -40% -20%; z-index: -1;
+  background: radial-gradient(60% 90% at var(--bx, 50%) 50%, rgba(255,255,255,.55), transparent 62%);
+  opacity: 0; transition: opacity .25s;
+}
+.menu .primary:hover::after { opacity: .5 }
+
+/* ---- 5. 刘看山 ----
+   站位是量出来的，不能随手改。具体是解一组不等式：
+     · 他不能被 whisper（那行独白）压住 —— 但真相是 whisper 在 .shell 里、他是 z-index:5，
+       所以是**他压 whisper**。whisper 的纵向位置由 main 的高度决定，而 main 的高度是
+       内容撑出来的（跟视口高矮没关系），1440 宽时它固定在 y≈663；
+       横向它又是右对齐的，右边缘落在视口的 89%。也就是说：**只要他够高够靠右，就一定会撞上它。**
+     · 他不能踩到页脚。页脚高约 58px。
+   代入各画幅解完发现：1280×720 想同时不碰 whisper 又不碰页脚，需要「底距 + 他自身宽度 < 77px」——
+   不存在这样的解。所以**矮屏时让 whisper 让位**（see 第 9 节）：
+   它和他是同一类东西（纯氛围装饰），手机版更是本来就藏起来。
+   1366×768、1280×720 这些笔记本画幅会因此看不到那行独白，换来的是他站稳。
+   底距用 max(64px, 4.5%)：64px 是给页脚留的硬底线，4.5% 保证高屏时他别浮得太高。 */
+.mascot-wrap {
+  position: fixed; right: 5%; bottom: max(64px, 4.5%);
+  z-index: 5;
+  width: clamp(112px, 11vw, 156px);
+  /* 位移只由 JS 逐帧缓动，这里不再加 transition —— 叠一层 .6s 的 CSS 过渡
+     只会让他比鼠标慢半拍。 */
+  transform: translate3d(calc(var(--mascot-x, 0) * 1px), calc(var(--mascot-y, 0) * 1px), 0);
+}
+.mascot {
+  display: block; position: relative; width: 100%;
+  background: transparent; border: 0; padding: 0; cursor: pointer;
+  transform-origin: 50% 96%;
+  animation: mascot-idle-bob 4.4s ease-in-out infinite;
+}
+@keyframes mascot-idle-bob {
+  0%, 100% { transform: translateY(0) rotate(-.6deg) }
+  50%      { transform: translateY(-6px) rotate(.6deg) }
+}
+.mascot img {
+  display: block; width: 100%; height: auto;
+  /* 书房是暖光环境，白角色要带一点暖调才不会像贴纸 */
+  filter: drop-shadow(0 14px 22px rgba(0,0,0,.62)) drop-shadow(0 0 26px rgba(255,196,130,.16))
+          sepia(.06) saturate(.96);
+}
+.mascot:hover { filter: brightness(1.06) }
+.mascot:focus-visible { outline: 2px solid var(--blue); outline-offset: 10px; border-radius: 8px }
+.mascot[data-awake="false"] img { filter: brightness(.72) saturate(.7) drop-shadow(0 10px 20px rgba(0,0,0,.6)) }
+
+/* 脚下的接触阴影：没有它整个人像飘在地板上 */
+.mascot-wrap::after {
+  content: ''; position: absolute; left: 12%; right: 12%; bottom: -2%;
+  height: 16px; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(0,0,0,.55), transparent 78%);
+  filter: blur(3px);
+}
+
+/* ---- 6. 对话气泡 ---- */
+.mascot-say {
+  position: absolute; right: calc(100% + 16px); bottom: 46%;
+  width: max-content; max-width: min(260px, 34vw);
+  margin: 0; padding: 11px 15px;
+  background: rgba(8,18,28,.92);
+  border: 1px solid #ffffff2e; border-left: 2px solid var(--blue);
+  color: #dce8f1; font-size: 13.5px; line-height: 1.7; letter-spacing: .04em;
+  backdrop-filter: blur(6px);
+  opacity: 0; visibility: hidden; transform: translateX(8px) scale(.97);
+  transition: opacity .28s, transform .28s, visibility .28s;
+}
+.mascot-say[data-show="true"] { opacity: 1; visibility: visible; transform: translateX(0) scale(1) }
+/* 气泡尾巴指向刘看山 */
+.mascot-say::after {
+  content: ''; position: absolute; left: 100%; bottom: 16px;
+  border: 7px solid transparent; border-left-color: rgba(8,18,28,.92);
+}
+
+/* 悬停提示：只在鼠标移上去之后才出现，不打扰第一眼 */
+.mascot-hint {
+  position: absolute; left: 50%; bottom: -30px; transform: translateX(-50%);
+  font-size: 11px; letter-spacing: .16em; color: #bfcbd4; white-space: nowrap;
+  opacity: 0; transition: opacity .25s;
+}
+.mascot-wrap:hover .mascot-hint { opacity: 1 }
+
+/* ---- 7. 底部排布重排 ----
+   原设计是「左章节卡 ↔ 右调查员头像卡」两端对齐。现在头像卡被真人取代了，
+   那条注记跟着挪到章节卡右边，把右下角整块让给刘看山站。
+   **padding-right 是必须的**：注记是弹性宽度，在 1024 这种「不够宽也不够窄」的画幅下
+   会一直伸到右下角、被刘看山的左肩啃掉一小块（实测 360 px²）。
+   给它整条 rail 留出右边一列之后，注记永远进不了那一列。 */
+.bottom-rail { justify-content: flex-start; gap: clamp(24px, 4vw, 64px); padding-right: clamp(120px, 14vw, 200px) }
+.investigator-note {
+  font-family: "Songti SC", serif; color: #adb9c0; font-size: 15px;
+  letter-spacing: .12em; text-align: left; line-height: 1.9;
+  max-width: min(300px, 30vw); margin: 0;
+}
+.investigator-note b { display: block; color: var(--blue); font-weight: 400; font-size: 13px; letter-spacing: .08em }
+
+/* ---- 8. 预览标记：这只是预览页，别让人误以为线上已经改了 ---- */
+.fx-preview-tag {
+  position: fixed; left: 50%; top: 0; transform: translateX(-50%); z-index: 6;
+  display: flex; align-items: center; gap: 14px; white-space: nowrap;
+  padding: 7px 18px; background: rgba(8,18,28,.86); border: 1px solid #ffffff26; border-top: 0;
+  font-size: 12px; letter-spacing: .14em; color: #c8d4dc; backdrop-filter: blur(6px);
+}
+.fx-preview-tag a { color: var(--blue); text-underline-offset: 3px }
+.fx-preview-tag i { font-style: normal; color: #8fa0ac }
+/* 两个短标签，窄屏换成短的，免得这条横幅换行去压 masthead */
+.fx-preview-tag .tag-mini { display: none }
+
+/* ---- 9. 减少动态效果 ---- */
+/* 矮屏时让 whisper 让位。理由写在第 5 节：1366×768 / 1280×720 这类画幅里，
+   「他躲开 whisper」和「他躲开页脚」在几何上互斥，必须弃一个。
+   whisper 是纯氛围文字、手机版本来就 display:none，弃它代价最小。
+
+   阈值不能用固定的 max-height —— 因为 whisper 的纵向位置是**内容撑出来的**，
+   跟视口高矮无关，却随宽度线性增长（实测拟合 y ≈ 0.13·W + 476，W=1440 时约 663）。
+   而他的头顶 = 视口高 − max(64px, 4.5%) − 他的宽 ≈ 视口高 − 220。
+   两者不打架的条件因此是：视口高 > 0.13·W + 696，直接写成 min-height 的 calc。
+   这样「宽而扁」（1920×891）和「窄而高」都能各自算对，不会像固定阈值那样顾此失彼。
+   浏览器若不支持媒体查询里的 calc，条件恒不成立 → 永远隐藏 whisper，
+   是「失败就少显示一个装饰」，不会变成布局事故。 */
+@media (min-width: 601px) {
+  .whisper { display: none }
+}
+@media (min-width: 601px) and (min-height: calc(0.13 * 100vw + 696px)) {
+  .whisper { display: block }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #fx-dust, .fx-scan { display: none }
+  .fx-light { opacity: .82 }
+  .world { background-position: center center !important }
+  .mascot, .opening h1 em, .eyebrow i { animation: none }
+  .mascot-wrap { transform: none !important }
+}
+html.no-motion #fx-dust, html.no-motion .fx-scan { display: none }
+html.no-motion .fx-light { opacity: .82 }
+html.no-motion .mascot, html.no-motion .opening h1 em, html.no-motion .eyebrow i { animation: none }
+html.no-motion .mascot-wrap { transform: none !important }
+/* menu.js 的「界面动态」开关关掉时，也把视差基准百分比接回来（和上面窄屏同理） */
+html.no-motion .world { background-position: 50% center !important }
+
+/* 高度不够时他必须缩小。窄屏那几条规则管的是宽度，这条管高度：
+   768 高的笔记本上，即使 whisper 已经让位，他也得收一点才不会顶到章节卡。 */
+@media (max-height: 820px) {
+  .mascot-wrap { width: clamp(96px, 9vw, 132px) }
+}
+
+/* ---- 10. 平板（601~900）：底部还是横排，他留在右下角，缩小让位 ---- */
+@media (max-width: 900px) {
+  .mascot-wrap { right: 5%; bottom: max(64px, 5%); width: clamp(104px, 15vw, 148px) }
+  .bottom-rail { padding-right: clamp(110px, 18vw, 176px) }
+  .mascot-say {
+    right: auto; left: 50%; bottom: calc(100% + 14px);
+    transform: translateX(-50%) translateY(6px) scale(.97);
+    max-width: min(240px, 60vw);
+  }
+  .mascot-say[data-show="true"] { transform: translateX(-50%) translateY(0) scale(1) }
+  .mascot-say::after {
+    left: 50%; top: 100%; bottom: auto;
+    border-left-color: transparent; border-top-color: rgba(8,18,28,.92);
+  }
+  .mascot-hint { display: none }
+  .investigator-note { text-align: left; margin: 0; max-width: none }
+}
+
+/* ---- 11. 手机（≤600）----
+   手机上 menu.css 把 .bottom-rail 改成纵向、章节卡占满整行，
+   于是「右下角」整块都归章节卡 —— 直接把他钉在那儿会**压住卡上的字和 ↗ 箭头**
+   （实测重叠 9282 px²，截图里一眼就能看见）。
+   办法：给 bottom-rail 让出右边一列，章节卡改成弹性宽度去挤左边，
+   他就站在这一列里，谁都不碰。 */
+@media (max-width: 600px) {
+  /* padding-right 是给他让出来的一列。100px 会把章节卡压到 242px，
+     标题「谁在替空房敲门」就会折成两行、第二行只剩一个「门」——
+     实测 86px（卡片 256px）再把标题降 1px 就正好一行放得下。 */
+  .bottom-rail { padding-right: 86px }
+  .chapter-teaser { width: auto; flex: 1 1 auto; min-width: 0 }
+  .chapter-text strong { font-size: 15px }
+  .mascot-wrap { right: 3%; bottom: 15%; width: clamp(70px, 19vw, 92px) }
+  /* 气泡在这个宽度上**必须改成右侧对齐**，不能继续以他为轴居中：
+     max-width 60vw≈234px 的盒子居中在 x≈337 上，右边会顶到 454 —— 已经出画 64px，
+     而因为父级是 position:fixed，它既不产生横向滚动条、也不报错，就是**被裁掉半句**。 */
+  .mascot-say {
+    left: auto; right: -4px; bottom: calc(100% + 12px);
+    transform: translateY(6px) scale(.97);
+    max-width: min(230px, 58vw);
+  }
+  .mascot-say[data-show="true"] { transform: translateY(0) scale(1) }
+  .mascot-say::after { left: auto; right: 24px }
+  .fx-preview-tag { font-size: 11px; gap: 8px; padding: 6px 12px; letter-spacing: .06em }
+  .fx-preview-tag .tag-full { display: none }
+  .fx-preview-tag .tag-mini { display: inline }
+}

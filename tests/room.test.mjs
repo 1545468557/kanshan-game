@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import * as THREE from '../dist/vendor/three/three.module.min.js';
-import {createCharacter} from '../dist/character-meshes.mjs';
-import {buildRoom} from '../dist/room-scene.mjs';
-import {blocked,moveWithCollision} from '../dist/room-physics.mjs';
+import * as THREE from '../public/vendor/three/three.module.min.js';
+import {createCharacter} from '../public/character-meshes.mjs';
+import {buildRoom} from '../public/room-scene.mjs';
+import {blocked,moveWithCollision} from '../public/room-physics.mjs';
 
 let checks=0;
 const check=(name,fn)=>{fn();checks++;console.log(`PASS ${name}`);};
@@ -43,8 +43,8 @@ for(let head=0;head<queue.length;head++){
   }
 }
 for(const target of [...npcs,{x:.5,z:-3.57},{x:3.26,z:1.35},{x:5.38,z:.1},{x:0,z:7.2}])check(`reachable interaction at ${target.x}, ${target.z}`,()=>assert(reachable.some(p=>Math.hypot(p.x-target.x,p.z-target.z)<1.1)));
-const html=await readFile(new URL('../dist/room-gameplay.html',import.meta.url),'utf8');
-const script=await readFile(new URL('../dist/room.mjs',import.meta.url),'utf8');
+const html=await readFile(new URL('../public/room-gameplay.html',import.meta.url),'utf8');
+const script=await readFile(new URL('../public/room.mjs',import.meta.url),'utf8');
 check('every queried UI id exists',()=>{
   for(const match of script.matchAll(/\$\('#([^']+)'\)/g))assert(html.includes(`id="${match[1]}"`),`Missing #${match[1]}`);
 });

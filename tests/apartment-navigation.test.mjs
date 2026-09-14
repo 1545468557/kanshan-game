@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import * as T from '../dist/vendor/three/three.module.min.js';
-import { createCharacter } from '../dist/character-meshes.mjs';
-import { PLAYER_START, PLAYER_RADIUS, apartmentObstacles, isWalkable, moveInApartment, cameraRelativeMove } from '../dist/apartment-navigation.mjs';
+import * as T from '../public/vendor/three/three.module.min.js';
+import { createCharacter } from '../public/character-meshes.mjs';
+import { PLAYER_START, PLAYER_RADIUS, apartmentObstacles, isWalkable, moveInApartment, cameraRelativeMove } from '../public/apartment-navigation.mjs';
 
 const models = [
   {id:'sofa',min:[-1.33,0,-3.674],max:[1.17,1.268,-2.626]},
@@ -46,8 +46,8 @@ for(const seconds of [0,.1,1,5,20]){
   character.animate(seconds,true);character.root.updateMatrixWorld(true);
   character.root.traverse(o=>assert(o.matrixWorld.elements.every(Number.isFinite)));
 }
-const html=await readFile(new URL('../dist/room.html',import.meta.url),'utf8');
-const script=await readFile(new URL('../dist/room-art.mjs',import.meta.url),'utf8');
+const html=await readFile(new URL('../public/room.html',import.meta.url),'utf8');
+const script=await readFile(new URL('../public/room-art.mjs',import.meta.url),'utf8');
 for(const match of script.matchAll(/\$\('([^']+)'\)/g))assert(html.includes(`id="${match[1]}"`),`Missing #${match[1]}`);
 assert(html.includes('kanshan-player.css'));
 assert(script.includes("createKanshanPlayer({"));
