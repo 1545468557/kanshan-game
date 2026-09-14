@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+  <!-- 首页改版**预览页**。它不会成为线上第一屏 —— 线上根路径仍然是 index.html。
+       这里只是为了把「视差 + 门灯 + 浮尘 + 刘看山」摆出来看效果，
+       确认满意之后再合并进 index.html / menu.css / home-v2.css。
+
+       做法上刻意偷懒：整份 markup 就是 index.html 抄过来的，menu.css / home-v2.css /
+       menu.js / zhihu-login.js 共用同一份 —— 所以「选择故事 → 第一章 → 进入调查现场」
+       这些弹窗全都照常能用，看到的也就是真页面的排版，不是另做一个样子。
+       （menu.js 后来为「背景音乐与音效」改过一次，那是首页与预览页共用的改动。） -->
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#06101f" />
+    <meta name="robots" content="noindex" />
+    <title>首页改版预览 — 知乎——你是否问到了关键线索</title>
+    <meta name="description" content="首页特效与刘看山的预览页，非线上第一屏。" />
+    <link rel="stylesheet" href="./menu.css?v=20260913f" />
+    <link rel="stylesheet" href="./home-v2.css?v=20260913f" />
+    <link rel="stylesheet" href="./zhihu-login.css?v=20260914d" />
+    <link rel="stylesheet" href="./home-fx.css?v=20260913f" />
+  </head>
+  <body>
+    <!-- 背景三件套保持原样，特效层插在它们后面、.shell 前面。
+         顺序不能动：z-index:0 的层靠 DOM 顺序排在 .shell 之后就会盖住标题和菜单。 -->
+    <div class="world" aria-hidden="true"></div><div class="shade" aria-hidden="true"></div>
+    <canvas id="fx-dust" aria-hidden="true"></canvas>
+    <div class="fx-light" aria-hidden="true"></div>
+    <div class="fx-scan" aria-hidden="true"></div>
+    <div class="grain" aria-hidden="true"></div>
+
+    <div class="fx-preview-tag"><i><span class="tag-full">首页改版预览 · 还没上线</span><span class="tag-mini">改版预览</span></i><a href="./"><span class="tag-full">看现在的线上首页</span><span class="tag-mini">看原版</span></a></div>
+
+    <div class="shell">
+      <header class="masthead"><a class="brand" href="./" aria-label="知乎——你是否问到了关键线索，首页">知乎<span>故事里的另一种可能</span></a><div class="utilities"><span class="prototype">界面试玩版</span><span class="zhihu-slot" id="zhihu-slot"></span><button class="icon-button" id="audio" aria-label="开启环境音" aria-pressed="false">♪ <span>声音关</span></button><button class="icon-button" id="settings" aria-label="打开设置">⚙ <span>设置</span></button></div></header>
+      <main>
+        <section class="opening" aria-labelledby="game-title">
+          <div class="eyebrow"><i></i> 一场从提问开始的悬疑冒险</div>
+          <h1 id="game-title"><span class="sr-only">知乎——</span>你是否问到了<br><em>关键线索</em><span class="question-mark">？</span></h1>
+          <p class="lead">每个人都说了一部分。<br>剩下的，等你来问。</p>
+          <nav class="menu" aria-label="游戏主菜单"><button class="primary" data-open="chapters"><span>选择故事</span><span aria-hidden="true">↗</span></button><button class="text-button" data-open="guide"><span class="menu-index">02</span> 调查员须知 <span aria-hidden="true">＋</span></button><button class="text-button" data-open="sources"><span class="menu-index">03</span> 故事从何而来 <span aria-hidden="true">＋</span></button></nav>
+        </section>
+        <button class="door-hotspot archive-hotspot" data-open="chapters" aria-label="翻开故事档案，选择关卡"><span class="crosshair">＋</span><span>故事档案<span class="hotspot-hint">翻开一个未解的故事</span></span></button>
+        <aside class="whisper" id="whisper" aria-live="polite">每一个故事，都有尚未问出口的问题。</aside>
+        <section class="bottom-rail" aria-label="第一章与调查员">
+          <button class="chapter-teaser" data-open="case"><span class="chapter-number">01</span><span class="chapter-text"><small>第一章 · 旧公寓</small><strong>蓝血</strong></span><span class="chapter-state">查看案件简介 <span aria-hidden="true">↗</span></span></button>
+          <p class="investigator-note">你的调查员，现在站在画面里。<b>右下角那个就是刘看山 —— 点他一下</b></p>
+        </section>
+      </main>
+      <footer><span>观察 · 追问 · 还原</span><span>故事档案馆</span></footer>
+    </div>
+
+    <!-- 刘看山。放在 .shell 外面：他是 position:fixed，挂在 shell 里只会白白继承那圈内边距。
+         <button> 而不是 <div> —— 键盘能 Tab 到、空格能触发，无障碍上就是一个普通按钮。 -->
+    <div class="mascot-wrap">
+      <p class="mascot-say" id="mascot-say" role="status" aria-live="polite" data-show="false"></p>
+      <button class="mascot" id="mascot" type="button" data-awake="true" aria-label="和刘看山说说话">
+        <img id="mascot-img" src="./assets/kanshan-idle-160.gif" alt="调查员刘看山" width="320" height="320" />
+      </button>
+      <span class="mascot-hint">点他一下</span>
+    </div>
+
+    <dialog id="panel" aria-labelledby="panel-title"><div class="dialog-bar"><span>调查档案 / <span id="panel-kind">01</span></span><button id="close-panel" class="icon-button" aria-label="关闭窗口">✕</button></div><div id="panel-body"></div></dialog>
+    <audio id="bgm-piano" preload="auto" loop src="./assets/bgm-piano.mp3"></audio>
+    <audio id="ui-soft-chime" preload="auto" src="./assets/ui-soft-chime.mp3"></audio>
+    <script src="./menu.js?v=20260914e"></script>
+    <script src="./zhihu-login.js?v=20260914d"></script>
+    <script src="./home-fx.js?v=20260914a"></script>
+  </body>
+</html>

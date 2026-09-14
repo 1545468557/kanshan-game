@@ -1,0 +1,56 @@
+/* 知乎账号登录挂件。首页（menu.css 体系）和调查现场（room-art.css 体系）共用这一份，
+   所以这里只用字面颜色值，不依赖任何一边的 CSS 变量。 */
+
+.zhihu-slot{display:inline-flex;align-items:center}
+.zhihu-slot:empty{display:none}
+
+.zhihu-account{display:inline-flex;align-items:center;gap:9px;background:transparent;border:1px solid #ffffff2e;padding:7px 12px 7px 9px;color:#d5e0e7;font-size:13px;line-height:1.25;text-align:left;border-radius:2px;transition:border-color .2s,color .2s,background .2s}
+.zhihu-account:hover{border-color:#75c6ff;color:#fff;background:#75c6ff14}
+.zhihu-account:disabled{opacity:.55;cursor:not-allowed}
+.zhihu-account i{font-style:normal;font-size:13px;font-weight:700;width:21px;height:21px;display:grid;place-items:center;background:#0084ff;color:#fff;border-radius:3px;flex:none}
+.zhihu-account span{display:flex;flex-direction:column}
+.zhihu-account small{font-size:11px;color:#92a6b4;letter-spacing:.06em;margin-top:2px}
+.zhihu-account[data-state="in"] i{background:#2f7d4f}
+
+.zhihu-toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,14px);margin:0;padding:11px 18px;z-index:60;background:#08131fb8;border:1px solid #ffffff2b;border-left:2px solid #75c6ff;color:#dbe6ee;font-size:13.5px;letter-spacing:.05em;line-height:1.6;backdrop-filter:blur(6px);opacity:0;pointer-events:none;max-width:min(520px,calc(100vw - 48px));transition:opacity .25s,transform .25s}
+.zhihu-toast.active{opacity:1;transform:translate(-50%,0)}
+
+@media(max-width:600px){.zhihu-account span{display:none}.zhihu-account{padding:7px}}
+
+/* ---- 登录门：公网域名上不登录进不去（本地地址不设门，见 zhihu-login.js 顶部第 3 条）----
+   层级定 80：房间的序幕动画是 40、吐司是 60，门必须在它们之上。
+   背景用半透明深色而不是纯黑 —— 首页那面书架和房间都还能透出来，
+   门应该像是博物馆门口的登记台，不是一块挡板。 */
+html.zhihu-gate-lock{overflow:hidden}
+
+.zhihu-gate{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:26px;overflow:auto;background:radial-gradient(130% 120% at 50% -10%,#0c1e2fc4,#03080eee 72%);backdrop-filter:blur(2px)}
+
+.zhihu-gate-card{width:min(540px,100%);border:1px solid #ffffff26;border-left:2px solid #0084ff;background:#08131ff2;padding:30px 32px 26px;color:#dbe6ee;box-shadow:0 26px 70px #00000080;animation:zhihu-gate-in .34s ease-out both}
+
+@keyframes zhihu-gate-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+.zhihu-gate-kicker{margin:0 0 12px;font-size:11.5px;letter-spacing:.22em;color:#75c6ff}
+.zhihu-gate-card h2{margin:0 0 14px;font-size:22px;line-height:1.45;font-weight:600;color:#f2f7fa}
+.zhihu-gate-lead{margin:0 0 22px;font-size:14px;line-height:1.85;color:#c3d3de}
+
+.zhihu-gate-enter{display:inline-flex;align-items:center;justify-content:center;gap:10px;width:100%;border:0;border-radius:2px;background:#0084ff;padding:13px 18px;color:#fff;font-size:15px;letter-spacing:.06em;cursor:pointer;transition:background .2s}
+.zhihu-gate-enter:hover{background:#1a92ff}
+.zhihu-gate-enter:focus-visible{outline:2px solid #75c6ff;outline-offset:2px}
+.zhihu-gate-enter i{font-style:normal;font-size:12px;font-weight:700;width:22px;height:22px;display:grid;place-items:center;background:#ffffff2e;border-radius:3px;flex:none}
+
+/* 门的次级动作，两种档位各一个：入口档是「先以访客身份进入」，现场档是「← 返回档案馆」。
+   两者都刻意做得**明显次一等** —— 没有底色、没有边框、字更小更灰，只有一条细细的下划线。
+   它们是出口，不是第二个按钮：主按钮负责「登记」，它们负责「走不动的时候别把人堵死」。
+   （现场档不给访客入口：看馆藏是浏览，进房间是调查。） */
+.zhihu-gate-guest,.zhihu-gate-back{display:block;box-sizing:border-box;width:100%;margin:14px 0 0;border:0;background:none;padding:4px 2px;color:#8ea6b6;font-size:12.5px;letter-spacing:.08em;text-align:center;cursor:pointer;text-decoration:underline;text-decoration-color:#ffffff33;text-underline-offset:4px;transition:color .2s,text-decoration-color .2s}
+.zhihu-gate-guest:hover,.zhihu-gate-back:hover{color:#cfe2ef;text-decoration-color:#75c6ff}
+.zhihu-gate-guest:focus-visible,.zhihu-gate-back:focus-visible{outline:2px solid #75c6ff;outline-offset:3px}
+
+.zhihu-gate-note{display:none;margin:14px 0 0;font-size:12.5px;line-height:1.7;color:#e8b87a}
+.zhihu-gate-note.active{display:block}
+
+/* 关掉动画的两条路：站里的 html.no-motion（menu.js 维护），以及系统的「减少动态效果」。 */
+html.no-motion .zhihu-gate-card{animation:none}
+@media(prefers-reduced-motion:reduce){.zhihu-gate-card{animation:none}}
+
+@media(max-width:600px){.zhihu-gate{padding:18px}.zhihu-gate-card{padding:24px 20px 20px}.zhihu-gate-card h2{font-size:19px}.zhihu-gate-lead{font-size:13.5px}}

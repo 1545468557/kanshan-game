@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#201f1b">
+<title>第一章 · 蓝血｜故事档案馆</title>
+<link rel="stylesheet" href="./room-art.css?v=wall-v41"><link rel="stylesheet" href="./kanshan-player.css?v=20260913f"><link rel="stylesheet" href="./npc-chat.css?v=20260913f"><link rel="stylesheet" href="./zhihu-login.css?v=20260914d">
+<script type="importmap">{"imports":{"three":"./vendor/three/three.module.min.js"}}</script>
+</head>
+<body>
+<main aria-label="第一章《蓝血》的旧公寓三维调查场景"><canvas id="world" tabindex="0" aria-label="操作刘看山：WASD 或方向键移动，拖动环视，E 交互，R 回到主角" aria-describedby="player-help"></canvas></main>
+<div class="shade" aria-hidden="true"></div>
+<header class="art-header"><a href="./?v=archive" aria-label="返回档案馆">← <span>档案馆</span></a><div class="place"><span>第一章 · 旧公寓</span><h1>402 / 蓝血</h1></div><span class="zhihu-slot" id="zhihu-slot"></span><button id="credits-open">素材来源</button></header>
+<p class="art-status" id="art-status">第一章 · 蓝血 · 可调查现场</p>
+<div class="player-badge"><span class="player-dot"></span><div><small>你的调查员</small><strong>刘看山</strong></div></div>
+<button id="player-resume" class="player-resume">↩ 回到刘看山 <kbd>R</kbd></button><p id="player-toast" role="status" hidden></p>
+<button id="interact-prompt" hidden><kbd>E</kbd><span><small id="interact-kind">观察</small><strong id="interact-name"></strong></span></button>
+<div id="move-stick" role="group" aria-label="按住并拖动摇杆移动刘看山"><span id="move-stick-thumb"></span><small>移动</small></div>
+<audio id="room-bgm-piano" preload="auto" loop src="./assets/bgm-piano.mp3"></audio>
+<audio id="room-ui-soft-chime" preload="auto" src="./assets/ui-soft-chime.mp3"></audio>
+<section id="opening-cg" hidden aria-label="序幕动画">
+<video id="opening-cg-video" preload="auto" playsinline webkit-playsinline x5-playsinline x5-video-player-type="h5" src="./assets/cg1-opening.mp4"></video>
+<button id="opening-cg-play" type="button" hidden>点击播放序幕（含声音）</button><button id="opening-cg-skip" type="button">跳过序幕 <kbd>Esc</kbd></button>
+</section>
+<aside id="inspect-panel" hidden aria-live="polite"><header><span>现场观察</span><button id="inspect-close" aria-label="关闭观察">×</button></header><div class="inspect-body"><p class="inspect-type" id="inspect-type">环境记录</p><h2 id="inspect-title"></h2><p id="inspect-copy"></p><p class="inspect-clue" id="inspect-clue" hidden></p><div class="inspect-actions"><button id="inspect-action" hidden>取下盖板</button><button id="inspect-return" hidden>回到刘看山</button></div></div></aside>
+<footer class="art-footer"><p id="player-help"><kbd>W A S D</kbd> 移动 <i>·</i> 拖动环视 <i>·</i> <kbd>E</kbd> 交互</p><nav aria-label="调查工具"><button id="case-open">我的解释</button><button id="memo-open">备忘录</button></nav></footer>
+<dialog id="memo"><header><h2>调查备忘录</h2><button id="memo-close" aria-label="关闭调查备忘录">×</button></header><div class="memo-copy"><p>把你认为重要的细节、人物关系和推理写在这里。游戏不会替你自动整理答案。</p><textarea id="memo-text" rows="12" placeholder="例如：房间整体落灰，但厕所水池边有新水痕……"></textarea><p class="memo-save" id="memo-save">自动保存在本机</p></div></dialog>
+<dialog id="case-board"><header><h2>我的解释</h2><button id="case-close" aria-label="关闭我的解释">×</button></header><div class="case-copy"><p class="case-intro">刚进入现场时，你就可以先写下自己的判断。调查不会替你修改答案。</p><form id="case-form"></form><div class="case-actions"><button id="case-submit" type="button">提交结案</button><button id="case-reset" type="button">清空重写</button></div><p id="case-result" class="case-result" hidden></p></div></dialog>
+<dialog id="diary"><header><h2>主角的日记</h2><button id="diary-close" aria-label="关闭日记">×</button></header><div class="diary-copy"><div id="diary-page"></div><nav class="diary-nav"><button id="diary-prev" type="button">上一页</button><span id="diary-index">1 / 5</span><button id="diary-next" type="button">下一页</button></nav></div></dialog>
+<dialog id="npc-board"><header><h2>在场的人</h2><button id="npc-close" aria-label="关闭人物对话">×</button></header><div class="npc-copy" id="npc-copy"></div></dialog>
+<dialog id="credits"><header><h2>这间房子的素材</h2><button id="credits-close" aria-label="关闭">×</button></header><div class="credits-copy"><p>本版是《蓝血》第一章的整合开发版：可调查房间、阅读日记、记录推理并提交五题解释。房间里三位当事人的对话由大模型即兴扮演，每个人只知道自己的那一部分，也会记住你刚刚问过的话；模型不可用时会自动退回案件边界内的既定台词，游戏不会因此卡住。</p><p>空间按旧公寓照片参考重新布置，未将原照片贴成假三维背景。</p><p>家具、书籍、墙面、木地板与环境光来自 Poly Haven，采用 CC0 许可。墙体、卫生间、相框、墙面旧日历和住户通知为程序化模型。序幕动画由本项目合成；其中的钢琴配乐与钟鸣音效为外部素材（CC BY-SA 4.0 / CC0），署名见下方素材记录。</p><ul id="asset-list"></ul><p>本次房间、道具、日记、NPC 对话与结局为新增改编；知乎官方《蓝血》仅提供故事母题，改编授权仍待确认。</p><a href="./assets/ROOM-ART-CREDITS.md" target="_blank" rel="noopener">查看完整素材记录 ↗</a></div></dialog>
+<section id="loading" role="status" aria-live="polite"><div><span>402 · 蓝血</span><h2>走进现场。<br>听见不同的说法。</h2><p id="loading-text">正在载入房间与家具材质…</p><progress id="load-progress" max="12" value="0"></progress><a id="retry" href="./room.html" hidden>重新加载</a><a id="http-link" hidden>请用项目自带的本地服务打开这一页（见 README 的启动方式）</a></div></section>
+<noscript><div class="no-script">需要开启 JavaScript 才能查看三维房间。</div></noscript>
+<!-- 登录门：公网域名上不登录进不去（门上留了「先以访客身份进入」当出口）。
+     本地地址（localhost/局域网）不设门，否则开发者自己都被关在门外 —— 见 zhihu-login.js 顶部第 3 条。 -->
+<!-- 手上设备的判定要早于一切会碰视频的脚本：手机端序幕改成「点一下再播」（原因见 handheld.js 顶部）。 -->
+<script src="./handheld.js?v=20260914e"></script>
+<script src="./zhihu-login.js?v=20260914d" data-gate="locked"></script>
+<script>
+/* ---- 开场动画（CG1）：只有 URL 带 ?intro=cg1 时才播 ----
+   覆盖层 z-index 是 40，加载画面只有 9，所以动画期间加载画面自然被盖住、不必手动隐藏；
+   动画放完时若房间还没建好，加载进度条会露出来继续报进度，而不是留一片空白。 */
+const openingCg = document.querySelector('#opening-cg');
+const openingCgVideo = document.querySelector('#opening-cg-video');
+const openingCgSkip = document.querySelector('#opening-cg-skip');
+const openingCgPlay = document.querySelector('#opening-cg-play');
+const roomBgm = document.querySelector('#room-bgm-piano');
+const roomChime = document.querySelector('#room-ui-soft-chime');
+let roomSoundPrefs = { sound: false, volume: .25 };
+let roomMotion = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+try {
+  const saved = JSON.parse(localStorage.getItem('clue-menu-preferences') || '{}');
+  roomSoundPrefs.sound = saved.sound === true;
+  if (typeof saved.volume === 'number') roomSoundPrefs.volume = Math.min(1, Math.max(0, saved.volume));
+  if (typeof saved.motion === 'boolean') roomMotion = saved.motion;
+} catch {}
+// 玩家在设置里关掉「界面动态」时，直接跳过序幕动画。
+let openingCgActive = new URLSearchParams(location.search).get('intro') === 'cg1' && roomMotion;
+let openingCgEnding = false;
+let openingCgSoundOn = false;
+let openingCgWatch;
+let roomMusicFade;
+function roomMusicVolume(multiplier=1) { return Math.min(.14, Math.max(.02, roomSoundPrefs.volume * .42 * multiplier)); }
+function fadeRoomMusic(multiplier=1, duration=900) { if (!roomBgm || !roomSoundPrefs.sound) return; const from=roomBgm.volume||0, to=roomMusicVolume(multiplier), started=performance.now(); cancelAnimationFrame(roomMusicFade); const step=now=>{ /* 两端都要夹：rAF 回调拿到的时间戳**可能早于**请求那一刻（实测线上出现过早约 1.4 秒），不夹的话缓动会算出负数音量，volume setter 直接抛 IndexSizeError。 */ const raw=(now-started)/duration; const p=raw>=1?1:(raw<=0?0:raw); const eased=p*p*(3-2*p); roomBgm.volume=Math.min(1,Math.max(0, from+(to-from)*eased)); if(p<1) roomMusicFade=requestAnimationFrame(step); }; roomMusicFade=requestAnimationFrame(step); }
+function startRoomMusic(multiplier=1) { if (!roomBgm || !roomSoundPrefs.sound) return; roomBgm.volume = roomMusicVolume(multiplier); roomBgm.play().then(()=>fadeRoomMusic(multiplier,700)).catch(()=>{}); }
+function playRoomChime() { if (!roomSoundPrefs.sound || !roomChime) return; roomChime.volume = Math.min(.22, Math.max(.04, roomSoundPrefs.volume * .7)); roomChime.currentTime = 0; roomChime.play().catch(()=>{}); }
+function finishOpeningCg(){
+  if(!openingCgActive || openingCgEnding)return;
+  openingCgEnding=true; openingCgActive=false;
+  openingCgSoundOn=false;
+  clearTimeout(openingCgWatch);
+  openingCg.classList.add('is-ending');
+  openingCgPlay.hidden=true;
+  // 手机端序幕是「点一下才播」：用户要是直接跳过，音乐从没起过 —— 这里补上，
+  // 否则跳过之后整个房间是静音的（桌面端在开声音之前就跳过，走的也是同一条路）。
+  if (roomBgm && roomBgm.paused) startRoomMusic(1); else fadeRoomMusic(1,1100);
+  playRoomChime();
+  // 让影片最后一点运动在淡出过程中走完，而不是停在一帧上。
+  setTimeout(()=>openingCgVideo.pause(),1100);
+  setTimeout(()=>{openingCg.hidden=true;openingCg.classList.remove('is-ending','needs-sound','needs-gesture');openingCgEnding=false;},1600);
+}
+function markCgPlaying(){ openingCgPlay.hidden=true; openingCg.classList.remove('needs-gesture','needs-sound'); }
+// 只在真实用户手势之后调用 —— 这种情况下浏览器一定放行，可以安全地开声音。
+function enableCgSound(){
+  if(openingCgSoundOn)return;
+  openingCgSoundOn=true;
+  openingCgVideo.muted=false;
+  startRoomMusic(.42);
+  markCgPlaying();
+}
+// 静音起播成功、但没拿到「开声音」的许可：把按钮降级成右下角一个小小的「点击开启声音」。
+function showCgSoundHint(){ openingCgPlay.textContent='点击开启声音'; openingCgPlay.hidden=false; openingCg.classList.add('needs-sound'); }
+// 连静音起播都被拒（极老或极严的浏览器）：只能让用户点一下，也就是原来那套。
+function showOpeningCgPlayButton(){ openingCgPlay.textContent='点击播放序幕（含声音）'; openingCgPlay.hidden=false; openingCg.classList.add('needs-gesture'); }
+function startOpeningCg(){
+  if(!openingCgActive)return;
+  openingCg.hidden=false;
+  openingCgSoundOn=false;
+  // 兜底闸：影片只有 5 秒，如果 20 秒还没收尾（解码器卡住、媒体时钟不走、
+  // ended 事件没来 —— 实测某些环境真的会让 currentTime 停在 0 而 paused=false），
+  // 也把覆盖层收掉。否则观众就只能对着 402 的门发呆，或者自己去找「跳过」。
+  clearTimeout(openingCgWatch);
+  openingCgWatch=setTimeout(()=>{ if(openingCgActive) finishOpeningCg(); }, 20000);
+  // 先试带声音自动播：回访用户、或浏览器本来就允许时，直接就有声。
+  openingCgVideo.muted=false;
+  openingCgVideo.play().then(()=>{ openingCgSoundOn=true; markCgPlaying(); }).catch(()=>{
+    // 被自动播放策略拒了 —— **第一次来的访客基本都是这一条**（实测线上：
+    // 影片已完整加载、readyState=4，但 30 秒里 paused 一直是 true）。
+    // 退回静音起播：这个所有浏览器都允许，于是序幕一定会动起来，
+    // 而不是卡在第一帧、让观众以为「视频坏了」。
+    openingCgVideo.muted=true;
+    openingCgVideo.play().then(showCgSoundHint).catch(showOpeningCgPlayButton);
+  });
+}
+openingCgVideo.addEventListener('timeupdate',()=>{ if(openingCgVideo.duration && openingCgVideo.currentTime >= openingCgVideo.duration - .16) finishOpeningCg(); });
+openingCgVideo.addEventListener('ended',finishOpeningCg);
+openingCgVideo.addEventListener('error',()=>{ openingCgActive=false; openingCg.hidden=true; });
+// 序幕还在放但没声音时，点画面任意处也能开声音（不用非得瞄准那个小按钮）
+openingCg.addEventListener('click',event=>{
+  if(!openingCgActive || openingCgSoundOn)return;
+  if(event.target.closest('#opening-cg-skip'))return;
+  if(openingCgVideo.paused)return;   // 极老浏览器里还没放起来，交给居中的按钮处理
+  enableCgSound();
+});
+openingCgPlay.addEventListener('click',()=>{
+  if(openingCgSoundOn){ markCgPlaying(); return; }
+  if(!openingCgVideo.paused){ enableCgSound(); return; }
+  openingCgVideo.muted=false;
+  startRoomMusic(.42);
+  openingCgVideo.play().then(()=>{ openingCgSoundOn=true; markCgPlaying(); }).catch(showOpeningCgPlayButton);
+});
+openingCgSkip.addEventListener('click',()=>{ playRoomChime(); finishOpeningCg(); });
+document.addEventListener('keydown',event=>{ if(event.code==='Escape') finishOpeningCg(); });
+// 手机 / 微信里序幕**不自动播**（2026-09-14 用户报障后改）：
+// 视频一播就可能被浏览器内核（微信 X5「视频全屏化」）接管成自己的全屏播放器，
+// 把整页连同登录门一起盖住 —— 用户看到的就是「点登录，出来一个 5 秒视频」。
+// 所以手机上走「点一下再播」那条现成的路；而且因为有了真实手势，点下去直接是**带声音**的版本，
+// 比静音自动播更好。桌面完全不变（仍然自动播，被策略拒绝时才逐级降级）。
+if (openingCgActive && typeof window.isHandheld === 'function' && window.isHandheld()) {
+  openingCg.hidden = false;
+  showOpeningCgPlayButton();
+} else if (openingCgActive) startOpeningCg();
+else startRoomMusic(1);
+if(location.protocol==='file:'){document.querySelector('#loading-text').textContent='本地文件方式无法可靠加载三维模型，请打开下面的试玩地址。';document.querySelector('#load-progress').hidden=true;document.querySelector('#http-link').hidden=false;}
+else import('./room-art.mjs?v=wall-v42').catch(error=>{console.error(error);document.querySelector('#loading').hidden=false;document.querySelector('#loading-text').textContent='场景未能完整载入，请重新加载。';document.querySelector('#load-progress').hidden=true;document.querySelector('#retry').hidden=false;});
+</script>
+</body></html>

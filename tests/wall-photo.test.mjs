@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import * as T from '../dist/vendor/three/three.module.min.js';
-import {createWallPhoto,photoViewForViewport} from '../dist/wall-photo.mjs';
+import * as T from '../public/vendor/three/three.module.min.js';
+import {createWallPhoto,photoViewForViewport} from '../public/wall-photo.mjs';
 const photo=createWallPhoto();
 const finish=()=>{for(let i=0;i<160;i++)photo.update(1/60);};
 const ray=new T.Raycaster(new T.Vector3(0,0,2),new T.Vector3(0,0,-1));

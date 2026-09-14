@@ -1,0 +1,30 @@
+/* NPC 对话的状态行。单独一个文件，避免动 room-art.css 那条压缩成一行的大规则。 */
+
+.npc-card p.npc-answer{
+  color:#f0e8d8;
+  border-left:2px solid #c7b28c55;
+  padding-left:10px;
+}
+
+/* 空着也占一行，避免回答出现时整张卡片跳动 */
+.npc-card p.npc-status{
+  font-size:12px;
+  line-height:1.6;
+  color:#8d9488;
+  margin:0;
+  min-height:18px;
+}
+
+.npc-card p.npc-status[data-state="thinking"]{color:#c9b489}
+.npc-card p.npc-status[data-state="ai"]{color:#82a9c0}
+.npc-card p.npc-status[data-state="local"]{color:#b98b7f}
+
+.npc-ask button:disabled,
+.npc-ask input:disabled{opacity:.55}
+
+.npc-copy > .tiny{
+  font-size:12px;
+  line-height:1.7;
+  color:#848b7f;
+  margin:16px 0 0;
+}

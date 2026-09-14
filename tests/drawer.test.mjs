@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import * as T from '../dist/vendor/three/three.module.min.js';
-import {createDrawer} from '../dist/drawer.mjs';
+import * as T from '../public/vendor/three/three.module.min.js';
+import {createDrawer} from '../public/drawer.mjs';
 const drawer=createDrawer();
 const finish=()=>{for(let i=0;i<80;i++)drawer.update(1/60);};
 assert.equal(drawer.state().phase,'closed');

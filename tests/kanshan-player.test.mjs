@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import * as T from '../dist/vendor/three/three.module.min.js';
-import { createKanshanPlayer } from '../dist/kanshan-player.mjs';
-import { apartmentObstacles } from '../dist/apartment-navigation.mjs';
+import * as T from '../public/vendor/three/three.module.min.js';
+import { createKanshanPlayer } from '../public/kanshan-player.mjs';
+import { apartmentObstacles } from '../public/apartment-navigation.mjs';
 
 // Deterministic input harness. Browser tests separately exercise real focus,
 // touch events and dialogs; this test covers controller state at any frame rate.

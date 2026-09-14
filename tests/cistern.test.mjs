@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import * as T from '../dist/vendor/three/three.module.min.js';
-import {createCistern} from '../dist/cistern.mjs';
+import * as T from '../public/vendor/three/three.module.min.js';
+import {createCistern} from '../public/cistern.mjs';
 
 const tank=createCistern(),closed=tank.lid.position.clone();
 assert.equal(tank.state().phase,'closed');

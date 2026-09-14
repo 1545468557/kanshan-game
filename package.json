@@ -1,0 +1,15 @@
+{
+  "name": "kanshan-game",
+  "private": true,
+  "description": "知乎黑客松 2026｜故事档案馆 · 第一章《蓝血》",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node server.mjs",
+    "setup": "node scripts/setup.mjs",
+    "check:model": "node scripts/check-model.mjs",
+    "test": "node tests/run-all.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

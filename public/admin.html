@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>调查记录台｜故事档案馆</title>
+<link rel="stylesheet" href="./admin.css?v=20260914b">
+</head>
+<body>
+<header class="bar">
+  <div>
+    <p class="kicker">第一章 · 蓝血</p>
+    <h1>调查记录台</h1>
+  </div>
+  <div class="bar-actions">
+    <button id="refresh" type="button" hidden>刷新</button>
+    <button id="export" type="button" hidden>导出 JSON</button>
+    <button id="signout" type="button" hidden>退出</button>
+  </div>
+</header>
+
+<main>
+  <section id="gate" class="gate">
+    <h2>需要管理员密码</h2>
+    <p class="hint">口令由你在 <code>.env.local</code> 里设定（正式的是 <code>ADMIN_PASSWORD</code>，给外人的那一份是 <code>ADMIN_TEST_PASSWORD</code>）。口令默认只放在请求头里；只有在网关会把请求头丢掉的环境里才会退一步改用网址参数，所以它不进仓库、不进截图。</p>
+    <form id="gate-form">
+      <input id="password" type="password" autocomplete="current-password" placeholder="管理员密码" aria-label="管理员密码">
+      <button type="submit">进入</button>
+    </form>
+    <p id="gate-message" class="message" role="status"></p>
+  </section>
+
+  <div id="panel" hidden>
+    <section class="cards" id="cards"></section>
+
+    <section class="block">
+      <h2>结案分数分布</h2>
+      <div id="scores" class="scores"></div>
+    </section>
+
+    <section class="block">
+      <h2>被问得最多的问题</h2>
+      <ol id="top-questions" class="top-list"></ol>
+    </section>
+
+    <section class="block">
+      <div class="block-head">
+        <h2>逐条记录</h2>
+        <label class="filter">只看
+          <select id="filter-kind">
+            <option value="all">全部</option>
+            <option value="ask">提问</option>
+            <option value="submit">结案</option>
+            <option value="fallback">降级到本地台词</option>
+          </select>
+        </label>
+      </div>
+      <div class="table-wrap"><table id="records"><thead><tr>
+        <th>时间</th><th>访客</th><th>人物</th><th>玩家问了什么</th><th>NPC 回了什么</th><th>来源</th>
+      </tr></thead><tbody></tbody></table></div>
+      <p id="records-message" class="message" role="status"></p>
+    </section>
+
+    <section class="block danger">
+      <h2>危险操作</h2>
+      <p class="hint">清空会把 <code>data/records.jsonl</code> 清成空文件，不可恢复。建议先导出一份。</p>
+      <button id="reset" type="button">清空全部记录</button>
+    </section>
+  </div>
+</main>
+<script type="module" src="./admin.js?v=20260914b"></script>
+</body></html>
