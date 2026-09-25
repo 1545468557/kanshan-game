@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f3f1ec">
+  <title>刘看山 · 模型预览</title>
+  <link rel="stylesheet" href="./character-preview.css">
+  <script type="importmap">{"imports":{"three":"./vendor/three/three.module.min.js"}}</script>
+</head>
+<body>
+  <main class="preview">
+    <header class="preview-header">
+      <div><p class="eyebrow">角色预览</p><h1>刘看山</h1></div>
+      <a class="room-link" href="./room.html">进入游戏 <span aria-hidden="true">↗</span></a>
+    </header>
+
+    <section class="stage" aria-label="刘看山三维模型">
+      <canvas id="character-canvas" tabindex="0" aria-label="刘看山模型，可拖动旋转、滚轮或双指缩放" aria-describedby="gesture-hint"></canvas>
+      <div class="stage-meta"><span class="status-dot" id="status-dot"></span><span id="model-status" role="status" aria-live="polite">正在加载模型…</span></div>
+      <div class="stage-info"><span>三角面 <strong id="triangle-count">—</strong></span><span>身高 <strong id="model-height">—</strong></span></div>
+      <div class="load-message" id="load-message"><span class="spinner" aria-hidden="true"></span><p id="load-copy">正在准备刘看山…</p><button id="retry-load" type="button" hidden>重新加载</button></div>
+      <p class="gesture-hint" id="gesture-hint">拖动旋转 <span>·</span> 滚轮 / 双指缩放</p>
+    </section>
+
+    <footer class="preview-controls">
+      <div class="control-group"><span class="control-label" id="view-label">视角</span><div class="segmented" role="group" aria-labelledby="view-label"><button type="button" data-view="three-quarter" aria-pressed="true">全貌</button><button type="button" data-view="front" aria-pressed="false">正面</button><button type="button" data-view="side" aria-pressed="false">侧面</button><button type="button" data-view="back" aria-pressed="false">背面</button></div></div>
+      <div class="control-group"><span class="control-label" id="animation-label">动作</span><div class="segmented" role="group" aria-labelledby="animation-label"><button type="button" data-animation="Idle" aria-pressed="true" disabled>待机</button><button type="button" data-animation="Walk" aria-pressed="false" disabled>行走</button><button type="button" data-animation="FastWalk" aria-pressed="false" disabled>快走</button></div></div>
+      <div class="playback-controls"><button type="button" class="utility-button" id="pause-animation" aria-pressed="false" disabled>暂停动画</button><button type="button" class="utility-button" id="turntable" aria-pressed="false">转台</button></div>
+    </footer>
+  </main>
+  <noscript><p class="noscript">请开启 JavaScript 以查看三维模型。</p></noscript>
+  <script type="module" src="./character-preview.js?v=20260925-reference-v3"></script>
+</body>
+</html>
