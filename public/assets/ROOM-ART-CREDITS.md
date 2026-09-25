@@ -7,18 +7,32 @@
 
 ## 角色
 
-刘看山由 `character-meshes.mjs` 根据项目内的官方形象参考程序化构建，白色轮廓、尖耳、黑鼻、蓝围巾；是临时 3D 近似模型，不是官方提供的 3D 文件。`kanshan-player.mjs` 为其增加转身、步行动画及第三人称控制。熊、鸟、企鹅为原创动物替身，不宣称为知乎的其他官方 IP。此处模型不构成角色或故事的版权授权。
+当前主角刘看山基于用户提供的 `刘看山3D-20260924/刘看山.glb`，原包说明为 Lux3D 生成、经过 Blender 修整的静态资源。原文件原样保存在 `art/characters/liukanshan/source-20260924.glb`，SHA256 为 `c1ed8df1733f8d179b5928bba2ee6ab972e1d0757c635fa3a3bdb928001f2230`。
+
+`scripts/build-liukanshan.py` 调用 `scripts/prepare-liukanshan-reference.py` 导入原资源，保留厚实圆润的身体、四肢与已有手指，整理表面并添加待机、行走和快走骨骼动画。游戏使用 `characters/liukanshan/liukanshan.glb`，高约 1.30 米，56,122 个三角面，五种材质。`kanshan-model.mjs` 负责资源与动画，`kanshan-player.mjs` 负责第三人称控制。
+
+该三维资源不是官方提供的 3D 文件。制作时曾参考知乎官方图片（https://static.zhihu.com/liukanshan/images/corridor/poster/liukanshan-06576e0f.png）和本地生成的刘看山三视图；这些工作参考不随本次仓库提交。仓库保留原始 GLB、游戏资产和处理脚本，可编辑 Blender 文件与渲染预览在运行构建命令后生成到被 Git 忽略的 `output/blender/liukanshan/`；步骤见 [角色编辑指南](../../art/characters/liukanshan/EDITING.md)。旧程序化主角仍存在于历史演示代码；熊、鸟、企鹅仍为原创动物替身，不宣称为知乎的其他官方 IP。此处模型不构成角色或故事的版权授权。
 
 ## 照片参考
 
 用户提供的 Peter Herrmann / Unsplash 旧房照片截图，只用于构图和气质参考，没有将照片、网页头像或 UI 放入三维场景，也没有声称完成摄影级一比一复刻。原照片的精确链接尚未取得。
 
-## Poly Haven
+## 当前家具：Kenney Furniture Kit
+
+微缩旧公寓的沙发、桌椅、书柜、边柜、台灯、书册、地毯、靠垫、植物、收纳箱和收音机选自 [Kenney Furniture Kit](https://kenney.nl/assets/furniture-kit)，作者 Kenney，许可为 **CC0 1.0**。原始资源包的 `License.txt` 标识为 Furniture Kit 2.0。家具为下载的现成 3D 模型，不是 AI 生成资产。
+
+仓库在项目根目录下的 `art/room-miniature/source/` 保留适配所需的 15 份未改动原始 GLB 和下载说明，原许可位于 `art/room-miniature/source/kenney-furniture-kit/License.txt`。完整 ZIP 及其余展开文件为可选本地缓存，被 Git 忽略。适配后的 GLB 位于 `public/assets/room-miniature/`，该目录保留一份 `License.txt`；`manifest.json` 记录每项源文件路径、SHA256、导出信息与加工说明。来源说明中的 140 模型检查是完整原包的审计结果，新克隆默认只包含所需的 15 份源模型。
+
+适配脚本 `scripts/prepare-miniature-furniture.py` 可直接使用仓库保留的源文件，通过 Blender 保留原模型部件，应用来源变换、居中落地、清理平面和法线，并按模型添加柔和倒角与低饱和配色。摆放、调查点、道具与抽屉配置集中在 `public/miniature-layout.mjs`；主角资产沿用前文记录的版本。
+
+`public/miniature-materials.mjs` 中的 `createMiniatureMaterials` 生成墙面、地板和建筑部件的辅助材质。`public/miniature-dressing.mjs` 制作资源包没有提供的窗帘、窗外环境等辅助构造。这些代码制作部分与 Kenney 家具来源分别记录；摄影棚式灯光布置、门窗和卫生间交互构造仍为项目内制作。
+
+## Poly Haven：当前环境光与历史素材
 
 以下资产采用 CC0 1.0。许可：https://polyhaven.com/license
-家具使用官方 API 返回的 glTF + bin + 1K JPG 材质；下载时验证 MD5 及所有相对引用。
+当前微缩房间继续加载 `old_room.hdr` 作为环境照明。下表中的 Poly Haven 大件家具、书籍模型和 PBR 表面贴图为历史版本资产，保留在项目中，当前房间不再加载。历史家具使用官方 API 返回的 glTF + bin + 1K JPG 材质，下载时验证 MD5 及所有相对引用。
 
-| 用途 | 资产 | 作者 | 来源 |
+| 当前或历史用途 | 资产 | 作者 | 来源 |
 |---|---|---|---|
 | 休息凹间沙发 | Sofa_01 | Kirill Sannikov | https://polyhaven.com/a/Sofa_01 |
 | 旧木椅 | painted_wooden_chair_02 | Kirill Sannikov | https://polyhaven.com/a/painted_wooden_chair_02 |
@@ -30,9 +44,9 @@
 | 木构件 PBR | wood_peeling_paint_weathered | 见来源页 | https://polyhaven.com/a/wood_peeling_paint_weathered |
 | 地板 PBR | old_wooden_floor_02 | 见来源页 | https://polyhaven.com/a/old_wooden_floor_02 |
 | 普通灰泥 PBR | grey_plaster | 见来源页 | https://polyhaven.com/a/grey_plaster |
-| 环境照明 HDRI（不是场景背景） | old_room | 见来源页 | https://polyhaven.com/a/old_room |
+| 当前环境照明 HDRI（不是场景背景） | old_room | 见来源页 | https://polyhaven.com/a/old_room |
 
-木门为有厚度、压线及五金的独立建筑模型，采用灰泥/木材正常的材质通道制作，非 Poly Haven 成品门。侧边门洞现在布置为旧公寓卫生间，洗漱台、镜子、马桶、瓷砖和管道均为程序化几何，不是下载的成品卫生间模型。rough_pine_door 是材质预览球，已排除；城堡门及高背椅与参考图不符，未在本版使用。
+木门为项目内制作的有厚度、压线及五金的独立建筑模型，当前采用微缩房间的辅助材质。侧边门洞布置为旧公寓卫生间，洗漱台、镜子、马桶、瓷砖和管道均为程序化几何，不是下载的成品卫生间模型。历史筛选中的 rough_pine_door 是材质预览球，未用于木门；城堡门及高背椅也未采用。
 
 ## 可移动墙上照片
 

@@ -1,19 +1,15 @@
 import * as T from './vendor/three/three.module.min.js';
-import { createCharacter } from './character-meshes.mjs';
-import { PLAYER_START, moveInApartment, cameraRelativeMove } from './apartment-navigation.mjs';
+import { PLAYER_START, moveInApartment, cameraRelativeMove } from './apartment-navigation.mjs?v=miniature-v5';
 
-export function createKanshanPlayer({ scene, camera, canvas, obstacles, cameraSolids, blocked, onInteract, onResume, joystick, stick }) {
-  const character = createCharacter(T, 'kanshan');
-  character.root.scale.multiplyScalar(.76);
-  character.root.updateMatrixWorld(true);
-  const feet = -.002 - new T.Box3().setFromObject(character.root).min.y;
-  character.root.position.set(PLAYER_START.x, feet, PLAYER_START.z);
+export function createKanshanPlayer({ scene, camera, canvas, character, obstacles, cameraSolids, blocked, onInteract, onResume, joystick, stick }) {
+  if (!character?.root || typeof character.update !== 'function') throw new Error('刘看山模型尚未准备完成');
+  character.root.position.set(PLAYER_START.x, -.002, PLAYER_START.z);
   character.root.rotation.y = Math.PI;
   character.root.name = 'player-liu-kanshan';
   scene.add(character.root);
   const keys = new Set(), touch = { x: 0, y: 0 };
   const eye = new T.Vector3(), offset = new T.Vector3(), ray = new T.Raycaster();
-  let yaw = 0, pitch = .31, distance = 2.6, mode = 'walk', dragging = null, stickPointer = null, moving = false;
+  let yaw = 0, pitch = .36, distance = 3.15, mode = 'walk', dragging = null, stickPointer = null, moving = false;
   const movementCodes = new Set(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight']);
   function clearInput() {
     keys.clear();touch.x = touch.y = 0;dragging = null;stickPointer = null;
@@ -89,10 +85,11 @@ export function createKanshanPlayer({ scene, camera, canvas, obstacles, cameraSo
     camera.lookAt(eye);
     character.root.visible = length > .67;
   }
-  function update(dt, seconds) {
+  function update(dt) {
     const paused = blocked();
     if (paused) clearInput();
     moving = false;
+    let actualSpeed = 0;
     if (mode === 'walk' && !paused) {
       const right = Number(keys.has('KeyD') || keys.has('ArrowRight')) - Number(keys.has('KeyA') || keys.has('ArrowLeft')) + touch.x;
       const forward = Number(keys.has('KeyW') || keys.has('ArrowUp')) - Number(keys.has('KeyS') || keys.has('ArrowDown')) + touch.y;
@@ -100,20 +97,22 @@ export function createKanshanPlayer({ scene, camera, canvas, obstacles, cameraSo
       const speed = keys.has('ShiftLeft') || keys.has('ShiftRight') ? 2.35 : 1.55;
       const p = character.root.position;
       const next = moveInApartment(p, { x: vector.x * speed * dt, z: vector.z * speed * dt }, obstacles);
-      moving = Math.hypot(next.x - p.x, next.z - p.z) > .0001;
+      const travelled = Math.hypot(next.x - p.x, next.z - p.z);
+      moving = travelled > .0001;
+      actualSpeed = moving && dt > 0 ? travelled / dt : 0;
       if (Math.hypot(vector.x,vector.z) > .03) {
         const facing = Math.atan2(vector.x,vector.z), angle = Math.atan2(Math.sin(facing-character.root.rotation.y),Math.cos(facing-character.root.rotation.y));
         character.root.rotation.y += angle * Math.min(1,dt * 12);
       }
       p.x = next.x;p.z = next.z;
     }
-    character.animate(seconds, moving);
+    character.update(dt, { moving, speed: actualSpeed });
     if (mode === 'walk') placeCamera();
   }
   return {
     root: character.root, update, clearInput,
     suspend() { mode = 'inspect';clearInput();character.root.visible = false; },
     resume() { mode = 'walk';clearInput();placeCamera(); },
-    state() { return { mode, position: character.root.position.toArray(), facing: character.root.rotation.y, moving, paused: blocked(), visible: character.root.visible }; }
+    state() { return { ...character.state?.(), mode, position: character.root.position.toArray(), facing: character.root.rotation.y, moving, paused: blocked(), visible: character.root.visible }; }
   };
 }

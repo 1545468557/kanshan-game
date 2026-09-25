@@ -1,0 +1,3 @@
+# Preserve the author's original license bytes, including CRLF whitespace.
+art/room-miniature/source/kenney-furniture-kit/License.txt -whitespace
+public/assets/room-miniature/License.txt -whitespace

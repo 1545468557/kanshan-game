@@ -8,11 +8,16 @@ import {SSAOPass} from './vendor/three/examples/jsm/postprocessing/SSAOPass.js';
 import {OutputPass} from './vendor/three/examples/jsm/postprocessing/OutputPass.js';
 import {createCistern} from './cistern.mjs';
 import {createWallPhoto,photoViewForViewport} from './wall-photo.mjs';
-import {createDrawer} from './drawer.mjs';
+import {createDrawer} from './drawer.mjs?v=miniature-v5';
 import {blueBloodCase,scoreAnswer} from './blueblood-case.mjs';
 import {createCharacter} from './character-meshes.mjs';
-import {createKanshanPlayer} from './kanshan-player.mjs';
-import {apartmentObstacles} from './apartment-navigation.mjs';
+import {createKanshanPlayer} from './kanshan-player.mjs?v=miniature-v5';
+import {loadKanshanModel} from './kanshan-model.mjs?v=20260925-reference-v3';
+import {apartmentObstacles} from './apartment-navigation.mjs?v=miniature-v5';
+import {createMiniatureCaseProp} from './miniature-props.mjs?v=miniature-v5';
+import {createMiniatureMaterials} from './miniature-materials.mjs?v=miniature-v5';
+import {addMiniatureDressing} from './miniature-dressing.mjs?v=mystery-v1';
+import {MINIATURE_MODELS,MINIATURE_ASSET_VERSION,MINIATURE_INSPECTION_POSITIONS,MINIATURE_PROP_POSITIONS,MINIATURE_DRAWER} from './miniature-layout.mjs?v=miniature-v5';
 
 // Current furnished apartment with a controllable player. Keep the older
 // room-gameplay.html prototype separate; its geometry is not this floor plan.
@@ -21,12 +26,26 @@ const canvas=$('world'), coarse=matchMedia('(pointer:coarse)').matches;
 const renderer=new T.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
 renderer.setPixelRatio(Math.min(devicePixelRatio,coarse?1.25:1.6));
 renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;
-renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.26; // v14 lighter: floor shadows appear lighter
-renderer.outputColorSpace=T.SRGBColorSpace;
-const scene=new T.Scene();scene.background=new T.Color('#393c34');
+renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=.84;
+renderer.outputColorSpace=T.SRGBColorSpace;renderer.info.autoReset=false;
+const scene=new T.Scene();scene.background=new T.Color('#39464e');
 const sceneCharacters=[];
+// Soft local occlusion keeps feet and furniture grounded outside the sun patch.
+const contactCanvas=document.createElement('canvas');contactCanvas.width=contactCanvas.height=64;
+const contactContext=contactCanvas.getContext('2d'),contactGradient=contactContext.createRadialGradient(32,32,2,32,32,32);
+contactGradient.addColorStop(0,'rgba(46,37,27,.28)');contactGradient.addColorStop(.45,'rgba(46,37,27,.15)');contactGradient.addColorStop(1,'rgba(46,37,27,0)');
+contactContext.fillStyle=contactGradient;contactContext.fillRect(0,0,64,64);
+const contactTexture=new T.CanvasTexture(contactCanvas);
+function contactShadow(x,z,width,depth){
+  const mesh=new T.Mesh(new T.PlaneGeometry(width,depth),new T.MeshBasicMaterial({map:contactTexture,transparent:true,depthWrite:false,opacity:.8}));
+  mesh.name='soft-contact-shadow';mesh.rotation.x=-Math.PI/2;mesh.position.set(x,.013,z);scene.add(mesh);return mesh;
+}
+const playerContact=contactShadow(.65,.90,.87,.72);
 for(const [kind,position,rotation] of [['bear',[2.35,0,-.55],-1.15],['bird',[-.60,0,3.35],3.10],['penguin',[2.90,0,-2.05],-1.8]]){
-  const character=createCharacter(T,kind);character.root.position.set(...position);character.root.rotation.y=rotation;character.root.scale.setScalar(.82);scene.add(character.root);sceneCharacters.push(character);
+  const character=createCharacter(T,kind);character.root.position.set(...position);character.root.rotation.y=rotation;character.root.scale.setScalar(.82);
+  character.root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;for(const mat of [o.material].flat()){mat.roughness=Math.max(.58,mat.roughness);mat.envMapIntensity=.35;}}});
+  scene.add(character.root);sceneCharacters.push(character);
+  contactShadow(position[0],position[2],kind==='bear'?1.25:.93,kind==='bear'?.96:.76);
 }
 const camera=new T.PerspectiveCamera(55,1,.07,50);
 const controls=new OrbitControls(camera,canvas);
@@ -39,10 +58,11 @@ controls.panSpeed=.55;controls.rotateSpeed=.45;
 const views={
   wide:{position:[.45,1.78,3.85],target:[-.12,1.5,-2.48]},
   alcove:{position:[.75,1.35,.65],target:[-.15,.95,-2.9]},
+  window:{position:[-.45,1.65,2.80],target:[3.30,1.60,.36]},
   entry:{position:[-2.85,1.55,-3.32],target:[-2.95,.97,-4.95]},
   tank:{position:[-2.93,1.78,-4.30],target:[-3.12,.76,-4.96]},
   photo:{position:[.05,2.65,-1.68],target:[.20,2.18,-3.73]},
-  cabinet:{position:[-2.25,1.62,.92],target:[-3.28,1.02,.48]}
+  cabinet:MINIATURE_DRAWER.view
 };
 let transition=null,activeView='wide',cistern=null,wallPhoto=null,drawer=null,selectedInspect=null,lastTankPhase='closed',lastPhotoPhase='closed',lastDrawerPhase='closed';
 let playerController=null,nearby=null,toastUntil=0;
@@ -63,7 +83,7 @@ function setView(name,animate=true){
   activeView=name;
   const bathroomView=name==='entry'||name==='tank',focusedView=bathroomView||name==='photo'||name==='cabinet';
   controls.minAzimuthAngle=-Infinity;controls.maxAzimuthAngle=Infinity;
-  controls.cursor.set(...(focusedView?v.target:[0,1.2,-1.7]));
+  controls.cursor.set(...(focusedView||name==='window'?v.target:[0,1.2,-1.7]));
   controls.maxTargetRadius=focusedView ? .25 : 2.9;
   controls.minDistance=focusedView ? .55 : 1.1;controls.maxDistance=focusedView ? 2.2 : 9;
   controls.minPolarAngle=focusedView ? .32 : 1.04;controls.maxPolarAngle=focusedView ? 1.35 : 1.78;
@@ -91,7 +111,7 @@ const clean=on=>{document.body.classList.toggle('clean',on);};
 $('credits-open').onclick=()=>{$('credits').showModal();$('credits-close').focus();};
 $('credits-close').onclick=()=>$('credits').close();
 const characterCredit=document.createElement('p');
-characterCredit.textContent='刘看山使用参考官方形象制作的程序化 3D 近似模型，并非官方 3D 素材。熊、鸟、企鹅是原创动物替身。三名当事人的对话由大模型即兴扮演，各人有各自所知的范围；模型不可用时自动退回案件边界内的既定台词。';
+characterCredit.textContent='刘看山使用参考官方形象、通过 Blender 制作的 3D 模型，并非官方 3D 素材。熊、鸟、企鹅是原创动物替身。三名当事人的对话由大模型即兴扮演，各人有各自所知的范围；对话模型不可用时自动退回案件边界内的既定台词。';
 $('credits').querySelector('.credits-copy').append(characterCredit);
 const memoKey='zhihu-investigation-memo-v1';
 const memo=$('memo'),memoText=$('memo-text'),memoSave=$('memo-save');
@@ -217,7 +237,7 @@ document.addEventListener('keydown',e=>{
 const composer=new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene,camera));
 const ao=new SSAOPass(scene,camera,innerWidth,innerHeight,16);
-ao.kernelRadius=3;ao.minDistance=.006;ao.maxDistance=.022; // v31: was (5 / .003 / .08) — .08 ≈ 4 m of depth range at near .07 / far 50, so the AO bled a halo around the moving protagonist
+ao.kernelRadius=2;ao.minDistance=.004;ao.maxDistance=.016; // Fine contact detail, avoiding wide halos on the mascot.
 composer.addPass(ao);composer.addPass(new OutputPass());
 function resize(){
   const w=canvas.clientWidth,h=canvas.clientHeight;
@@ -242,7 +262,8 @@ function frame(now){
     if(transition.t===1){transition=null;controls.enabled=true;}
   }
   else if(!playerController||activeView!=='walk')controls.update();
-  playerController?.update(dt,now/1000);
+  playerController?.update(dt);
+  if(playerController){playerContact.position.x=playerController.root.position.x;playerContact.position.z=playerController.root.position.z;playerContact.visible=playerController.root.visible;}
   if(playerController){
     if(activeView==='walk')controls.target.copy(playerController.root.position).setY(1.04);
     updateNearby();
@@ -252,10 +273,11 @@ function frame(now){
   if(wallPhoto){wallPhoto.update(dt);const phase=wallPhoto.state().phase;if(phase!==lastPhotoPhase){lastPhotoPhase=phase;if(selectedInspect?.id==='photo')renderInspection();}}
   if(drawer){drawer.update(dt);const phase=drawer.state().phase;if(phase!==lastDrawerPhase){lastDrawerPhase=phase;if(selectedInspect?.id==='cabinet')renderInspection();}}
   sceneCharacters.forEach((character,index)=>character.animate(now/1000+index*.8,false));
-  if(window.roomArtReport){window.roomArtReport.camera=camera.position.toArray();window.roomArtReport.target=controls.target.toArray();window.roomArtReport.cistern=cistern?.state();window.roomArtReport.photo=wallPhoto?.state();window.roomArtReport.drawer=drawer?.state();window.roomArtReport.view=activeView;window.roomArtReport.player={...playerController?.state(),nearby:nearby?.id||null};}
+  if(window.roomArtReport){window.roomArtReport.camera=camera.position.toArray();window.roomArtReport.target=controls.target.toArray();window.roomArtReport.cistern=cistern?.state();window.roomArtReport.photo=wallPhoto?.state();window.roomArtReport.drawer=drawer?.state();window.roomArtReport.view=activeView;window.roomArtReport.player=playerController?{...playerController.state(),nearby:nearby?.id||null}:null;}
   const renderStart=performance.now();
-  if(!document.hidden)composer.render();
+  if(!document.hidden){renderer.info.reset();composer.render();}
   if(window.roomArtReport)window.roomArtReport.renderMs=Math.round((performance.now()-renderStart)*10)/10;
+  if(window.roomArtReport)window.roomArtReport.render={calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,textures:renderer.info.memory.textures};
   requestAnimationFrame(frame);
 }
 
@@ -265,42 +287,10 @@ function done(label){
   $('loading-text').textContent='正在布置：'+label+' · '+completed+'/'+$('load-progress').max;
 }
 const textures=new T.TextureLoader();
-async function material(id,tint='#ffffff',glow=null){
-  const maps=await Promise.all(['color','normal','roughness'].map(async key=>{
-    const texture=await textures.loadAsync('./assets/materials/'+id+'/'+key+'.jpg');
-    texture.wrapS=texture.wrapT=T.RepeatWrapping;texture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
-    if(key==='color')texture.colorSpace=T.SRGBColorSpace;return texture;
-  }));
-  const m=new T.MeshStandardMaterial({map:maps[0],normalMap:maps[1],roughnessMap:maps[2],color:tint,roughness:1,normalScale:new T.Vector2(.5,.5),emissive:glow||'#000000',emissiveIntensity:glow?.5:0});
-  done(id);return m;
-}
-const [plaster,wood,floor,lime]=await Promise.all([
-  material('worn_plaster_wall','#c6b89e'),
-  material('wood_peeling_paint_weathered','#85725f'),
-  material('old_wooden_floor_02','#b8b1a4','#8d8475'),
-  material('grey_plaster','#d6c9b4')
-]);
+const miniatureMaterials=createMiniatureMaterials();
+const {plaster,wood,floor,lime}=miniatureMaterials;
+['墙面','木构件','地板','灰泥'].forEach(done);
 const architecture=new T.Group();architecture.name='new-apartment-architecture';scene.add(architecture);
-// A procedural aged-plaster texture is used as a thin interior finish. It
-// gives the large side walls real variation (fine grain, old roller bands,
-// damp blooms and hairline seams) instead of a single dark colour.
-function agedPlasterMaterial(){
-  const canvas=document.createElement('canvas');canvas.width=768;canvas.height=768;
-  const ctx=canvas.getContext('2d');ctx.fillStyle='#9b927f';ctx.fillRect(0,0,768,768);
-  const random=seed=>{let x=seed;return()=>{x=(x*1664525+1013904223)%4294967296;return x/4294967296;};};
-  const r=random(402);
-  for(let i=0;i<5200;i++){const x=r()*768,y=r()*768,s=.3+r()*2.6;ctx.fillStyle=`rgba(${55+Math.floor(r()*45)},${48+Math.floor(r()*42)},${38+Math.floor(r()*35)},${.035+r()*.10})`;ctx.fillRect(x,y,s,s);}
-  for(const stain of [[.12,.28,.20,.14],[.73,.66,.26,.20],[.42,.87,.18,.08],[.88,.18,.15,.10]]){const g=ctx.createRadialGradient(stain[0]*768,stain[1]*768,2,stain[0]*768,stain[1]*768,stain[2]*768);g.addColorStop(0,'rgba(72,60,47,.28)');g.addColorStop(1,'rgba(72,60,47,0)');ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(stain[0]*768,stain[1]*768,stain[2]*768,stain[3]*768,0,0,Math.PI*2);ctx.fill();}
-  ctx.strokeStyle='rgba(67,58,48,.23)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,274);ctx.bezierCurveTo(170,267,330,281,500,270);ctx.bezierCurveTo(620,264,705,275,768,267);ctx.stroke();
-  const texture=new T.CanvasTexture(canvas);texture.colorSpace=T.SRGBColorSpace;texture.wrapS=texture.wrapT=T.RepeatWrapping;texture.repeat.set(2.3,1.15);texture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
-  const material=new T.MeshStandardMaterial({map:texture,roughness:.96,metalness:0,color:'#907656',emissive:'#7a6746',emissiveIntensity:.55});
-  // The player may look from an unusual angle near a wall. Render the aged
-  // finish from either side so an accidental near-plane view never exposes
-  // the scene background as a hollow wall.
-  material.side=T.DoubleSide;
-  return material;
-}
-const limeUnused=agedPlasterMaterial();
 // One texel density for every wall plane. All planes now use world-anchored UVs
 // (see surface() below), so a single density keeps the plaster continuous; 2.8 m
 // per tile is large enough that the aged texture reads as soft wear, not busy grime.
@@ -377,18 +367,18 @@ surface(.55,3.5,3.75,1.75,3.775,-Math.PI/2,lime,WALL_TILE);
 // These restrained, physical decals and the low skirting catch side light and
 // make the wall read as a used surface even when the camera is close to it.
 const wallWear=new T.Group();wallWear.name='old-wall-wear';scene.add(wallWear);
-const wearMat=new T.MeshStandardMaterial({color:'#625d4e',roughness:1,transparent:true,opacity:.22,depthWrite:false}); // v16 blend into wall
-const crackMat=new T.MeshStandardMaterial({color:'#5a5547',roughness:1,transparent:true,opacity:.45,depthWrite:false}); // v16 blend into wall
+const wearMat=new T.MeshStandardMaterial({color:'#a79d89',roughness:1,transparent:true,opacity:.055,depthWrite:false}); // v16 blend into wall
+const crackMat=new T.MeshStandardMaterial({color:'#aa9f8c',roughness:1,transparent:true,opacity:.12,depthWrite:false}); // v16 blend into wall
 function rightWallPatch(z,y,sx,sy,rotation=0){
   const patch=new T.Mesh(new T.CircleGeometry(1,18),wearMat);patch.position.set(3.705,y,z);patch.rotation.y=-Math.PI/2;patch.rotation.z=rotation;patch.scale.set(sx,sy,1);wallWear.add(patch);return patch;
 }
-rightWallPatch(.42,1.26,.34,.18,-.28);rightWallPatch(2.86,2.64,.26,.14,.42);rightWallPatch(1.88,.64,.20,.11,-.15);
+rightWallPatch(.42,.38,.26,.10,-.28);rightWallPatch(1.88,.24,.20,.07,-.15);
 function leftWallPatch(z,y,sx,sy,rotation=0){
   const patch=new T.Mesh(new T.CircleGeometry(1,18),wearMat);patch.position.set(-3.695,y,z);patch.rotation.y=Math.PI/2;patch.rotation.z=rotation;patch.scale.set(sx,sy,1);wallWear.add(patch);return patch;
 }
 // Large, irregular repair blooms make the blank wall beside the cabinet read
 // as the same old plaster, rather than an untextured placeholder.
-leftWallPatch(1.98,2.52,.54,.30,-.18);leftWallPatch(2.72,1.32,.32,.18,.25);leftWallPatch(.72,2.02,.28,.15,-.35);
+leftWallPatch(2.72,.28,.25,.10,.25);leftWallPatch(.72,.22,.22,.08,-.35);
 // v32: the rectangular repair patch was removed. Its material carried a flat
 // untextured colour (#666052) while the surrounding plaster used a dark worn
 // map, so it blended out noticeably brighter and read as a board stuck on the
@@ -414,7 +404,7 @@ function wallNotice(){
   const frameMat=new T.MeshStandardMaterial({color:'#604b36',roughness:.78,metalness:.05});
   const paperMat=new T.MeshStandardMaterial({color:'#b5a98f',roughness:.92});
   const glassMat=new T.MeshPhysicalMaterial({color:'#b5c0bd',roughness:.12,metalness:.05,transmission:.16,transparent:true,opacity:.25});
-  const lineMat=new T.MeshBasicMaterial({color:'#655d4c',transparent:true,opacity:.56});
+  const lineMat=new T.MeshStandardMaterial({color:'#655d4c',roughness:1,transparent:true,opacity:.56});
   const add=(mesh,x,y,z,ry=0)=>{mesh.position.set(x,y,z);mesh.rotation.y=ry;mesh.castShadow=mesh.receiveShadow=true;group.add(mesh);return mesh;};
   const x=3.705,y=2.28,z=2.28,ry=-Math.PI/2;
   // v35: the backing board had its height and depth swapped (.045 tall, 1.28
@@ -465,7 +455,7 @@ scene.add(leftWallCalendar());
 surface(2.35,3.5,-3.50,1.75,-4.30,Math.PI/2,lime,WALL_TILE);
 surface(2.35,3.5,-2.28,1.75,-4.30,-Math.PI/2,lime,WALL_TILE);
 surface(1.22,3.5,-2.89,1.75,-5.46,0,lime,WALL_TILE);
-const corridorFill=new T.PointLight('#b7c3a0',.8,4,2);corridorFill.position.set(-2.9,2.6,-4.7);scene.add(corridorFill);
+const corridorFill=new T.PointLight('#b1c1bd',.32,4,2);corridorFill.position.set(-2.9,2.6,-4.7);scene.add(corridorFill);
 // Multi-profile door casings and room skirting, restrained faded pink-brown.
 function casing(cx,z,width,height){
   for(const side of [-1,1]){
@@ -490,15 +480,10 @@ structural(7.5,.09,.18,0,3.37,-3.1);structural(7.5,.16,.08,0,3.44,-3.14);
 for(const z of [-.78,.28,1.34])structural(.12,2.18,.065,3.65,1.96,z);
 for(const y of [.87,1.96,3.05])structural(.12,.075,2.22,3.65,y,.28);
 structural(.37,.09,2.40,3.60,.825,.28);structural(.06,2.36,.09,3.7,1.97,-.91);structural(.06,2.36,.09,3.7,1.97,1.47);
-const outside=new T.MeshBasicMaterial({color:'#b5b8a2',side:T.DoubleSide});
-// v36: this unlit panel is the "daylight outside" seen through the window. It
-// used to be a 2.3 x 2.3 m square that only just covered the aperture, so any
-// sliver of missing wall around the window showed the scene background instead.
-// Oversize it so every sightline through the aperture lands on it.
-surface(3.4,3.6,4.1,1.9,.2,-Math.PI/2,outside).castShadow=false;
+addMiniatureDressing({scene,materials:miniatureMaterials});
 // Single panelled apartment door, constructed as a continuous frame with
 // stepped inset panels and hardware rather than a blank rectangular slab.
-const doorwood=new T.MeshStandardMaterial({color:'#94705a',normalMap:wood.normalMap,roughnessMap:wood.roughnessMap,roughness:.9,normalScale:new T.Vector2(.38,.38)});
+const doorwood=miniatureMaterials.door;
 structural(1.16,2.89,.095,2.86,1.445,-3.13,doorwood);
 for(const [cy,h] of [[.72,1.03],[2.05,1.23]]){
   const panel=structural(.84,h,.028,2.86,cy,-3.065,doorwood);
@@ -512,7 +497,7 @@ for(const [cy,h] of [[.72,1.03],[2.05,1.23]]){
   }
   panel.receiveShadow=true;
 }
-const brass=new T.MeshStandardMaterial({color:'#89704e',roughness:.43,metalness:.78});
+const brass=miniatureMaterials.brass;
 structural(.085,.23,.018,2.42,1.34,-3.035,brass);
 const knob=new T.Mesh(new T.SphereGeometry(.035,20,12),brass);knob.position.set(2.42,1.40,-2.987);architecture.add(knob);
 const lever=new T.Mesh(new T.CapsuleGeometry(.017,.10,4,10),brass);lever.rotation.z=Math.PI/2;lever.position.set(2.46,1.40,-2.97);architecture.add(lever);
@@ -527,10 +512,7 @@ plate.geometry.attributes.uv.setXY(0,0,1);plate.geometry.attributes.uv.setXY(1,1
 // alcove.  The fixtures are deliberately readable from the entry camera so
 // the player understands the room layout at a glance.
 const bathroom=new T.Group();bathroom.name='old-apartment-bathroom';scene.add(bathroom);
-const tileMat=new T.MeshStandardMaterial({color:'#b8b7ac',roughness:.78,metalness:.02});
-const ceramic=new T.MeshStandardMaterial({color:'#e2dfd4',roughness:.32,metalness:.02});
-const porcelain=new T.MeshStandardMaterial({color:'#d5d2c7',roughness:.22,metalness:.02});
-const chrome=new T.MeshStandardMaterial({color:'#777a72',roughness:.25,metalness:.78});
+const tileMat=miniatureMaterials.tile,ceramic=miniatureMaterials.ceramic,porcelain=miniatureMaterials.porcelain,chrome=miniatureMaterials.chrome;
 const mirrorMat=new T.MeshStandardMaterial({color:'#9da6a5',roughness:.12,metalness:.65});
 function bathBox(w,h,d,x,y,z,mat){
   const mesh=new T.Mesh(new T.BoxGeometry(w,h,d),mat);mesh.position.set(x,y,z);mesh.castShadow=mesh.receiveShadow=true;bathroom.add(mesh);return mesh;
@@ -561,52 +543,49 @@ const seat=new T.Mesh(new T.TorusGeometry(.19,.035,12,28),porcelain);seat.rotati
 cistern=createCistern();cistern.root.position.set(-3.18,.43,-5.00);bathroom.add(cistern.root);
 // Small aged drain and a cool light source give the tiled room depth.
 bathCyl(.085,.012,-2.88,.012,-4.72,chrome,24);
-const bathLight=new T.PointLight('#d9e2d2',1.1,3.4,2);bathLight.position.set(-2.88,2.55,-4.82);bathroom.add(bathLight);
+const bathLight=new T.PointLight('#b9ceca',.72,3.4,2);bathLight.position.set(-2.88,2.55,-4.82);bathroom.add(bathLight);
 
-// v34: the ambient used to be a cool green-grey (#d2d7c6) at low intensity, so
-// any wall out of the direct sun picked up a green cast while sunlit walls read
-// warm — the "two different wall colours" split. Warm it up and raise it so the
-// whole room shares one warm, aged-plaster tone.
-scene.add(new T.HemisphereLight('#ddd0b6','#4a4436',.7));
-const sun=new T.DirectionalLight('#ffe1ad',3.6);
-sun.position.set(6,3.8,1.4);sun.target.position.set(-1,.15,-2.5);
-sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-7,right:7,top:7,bottom:-7,near:.1,far:22});
-sun.shadow.bias=-.00015;sun.shadow.normalBias=.025;sun.shadow.radius=3;scene.add(sun,sun.target);
-const windowBounce=new T.PointLight('#d8d8bd',3,10,2);windowBounce.position.set(3.20,2.10,.1);scene.add(windowBounce);
-const roomBounce=new T.PointLight('#bd9d7d',1.2,9,2);roomBounce.position.set(-1,2.8,.3);scene.add(roomBounce);
-const plasterFillLeft=new T.PointLight('#e0c6a1',2,7,2);plasterFillLeft.position.set(-2.7,2.25,.55);scene.add(plasterFillLeft);
-const plasterFillRight=new T.PointLight('#d7bea0',1.6,6,2);plasterFillRight.position.set(2.7,2.1,1.55);scene.add(plasterFillRight);
+// Dusk: cool window light separates silhouettes; the reading lamp provides
+// a small warm anchor while low ambient fill keeps investigation readable.
+scene.add(new T.HemisphereLight('#b4c5d1','#574c42',.38));
+const sun=new T.DirectionalLight('#afc9df',1.12);
+sun.position.set(6,5.3,2.4);sun.target.position.set(-1,.15,-1.8);
+sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-5.5,right:5.5,top:5.5,bottom:-5.5,near:.1,far:22});
+sun.shadow.bias=-.00012;sun.shadow.normalBias=.012;sun.shadow.radius=3;scene.add(sun,sun.target);
+const windowBounce=new T.PointLight('#aec7da',.68,7,2);windowBounce.position.set(3.10,2.30,.1);scene.add(windowBounce);
+const roomBounce=new T.PointLight('#c5b7a4',.24,6,2);roomBounce.position.set(-1,2.7,.3);scene.add(roomBounce);
 const pmrem=new T.PMREMGenerator(renderer);
 const hdrTask=new RGBELoader().loadAsync('./assets/materials/old_room.hdr').then(hdr=>{
-  const env=pmrem.fromEquirectangular(hdr);scene.environment=env.texture;scene.environmentIntensity=.55;hdr.dispose();pmrem.dispose();done('室内环境光');
+  const env=pmrem.fromEquirectangular(hdr);scene.environment=env.texture;scene.environmentIntensity=.11;hdr.dispose();pmrem.dispose();done('室内环境光');
 }).catch(e=>{failures.push('环境光');console.error(e);done('环境光未载入');});
 
-const modelSpecs=[
-  {id:'Sofa_01',label:'旧布艺木沙发',width:2.5,x:-.08,z:-3.15,rot:0},
-  {id:'painted_wooden_chair_02',label:'靠窗旧木椅',height:1.04,x:2.72,z:1.92,rot:Math.PI},
-  {id:'round_wooden_table_01',label:'圆木边桌',height:.68,x:-1.78,z:3.12,rot:.13},
-  {id:'vintage_cabinet_01',label:'旧木柜',height:1.76,x:-3.30,z:-.05,rot:Math.PI/2},
-  // The lamp belongs on the round table (its warm pool of light, lampGlow, has
-  // always sat there); its y is the case bottom, so 0.68 = the table top.
-  {id:'desk_lamp_arm_01',label:'金属台灯',height:.48,x:-1.93,y:.68,z:3.00,rot:1.8},
-  {id:'book_encyclopedia_set_01',label:'旧书',height:.3,x:-.6,y:.5,z:-3.15,rot:.20}
-];
-$('load-progress').max=modelSpecs.length+7;
+const modelSpecs=MINIATURE_MODELS;
+$('load-progress').max=modelSpecs.length+8;
 const photoTask=textures.loadAsync('./assets/wall-photo-v1.jpg').then(texture=>{
   texture.colorSpace=T.SRGBColorSpace;texture.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());
   wallPhoto=createWallPhoto({texture,wallMaterial:plaster,frameMaterial:wood});
   wallPhoto.root.position.set(-.18,2.18,-3.832);scene.add(wallPhoto.root);done('可移动旧照片');
 }).catch(error=>{failures.push('墙上照片');console.error(error);done('墙上照片未载入');});
-drawer=createDrawer({material:wood,handleMaterial:brass});
-drawer.root.position.set(-3.30,1.08,.76);scene.add(drawer.root);done('可操作旧木柜抽屉');
+drawer=createDrawer({material:wood,handleMaterial:brass,color:'#b49a7e'});
+drawer.root.position.set(...MINIATURE_DRAWER.position);drawer.root.rotation.y=MINIATURE_DRAWER.rotation;scene.add(drawer.root);done('可操作旧木柜抽屉');
 const loader=new GLTFLoader();
+let playerCharacter=null,playerModelError=null;
+window.roomReady=false;
+const playerModelTask=loadKanshanModel({loader}).then(character=>{
+  playerCharacter=character;done('刘看山');
+}).catch(error=>{
+  playerModelError=error;failures.push('刘看山模型');console.error(error);done('刘看山模型未载入');
+});
 const assetList=$('asset-list');
-for(const spec of modelSpecs){
-  const li=document.createElement('li'),a=document.createElement('a');a.href='https://polyhaven.com/a/'+spec.id;a.textContent=spec.label;a.target='_blank';a.rel='noopener noreferrer';li.append(a);assetList.append(li);
+for(const [title,url] of [['Kenney · Furniture Kit（CC0）','https://kenney.nl/assets/furniture-kit'],['Poly Haven · 室内环境光（CC0）','https://polyhaven.com/a/old_room']]){
+  const li=document.createElement('li'),a=document.createElement('a');a.href=url;a.textContent=title;a.target='_blank';a.rel='noopener noreferrer';li.append(a);assetList.append(li);
 }
+const furnitureLoads=new Map(),furnitureObjects=new Map();
 async function loadModel(spec){
-  const gltf=await loader.loadAsync('./assets/room-v2-models/'+spec.id+'/'+spec.id+'_1k.gltf');
-  const model=gltf.scene;model.updateMatrixWorld(true);
+  const url='./assets/room-miniature/'+spec.model+'.glb?v='+MINIATURE_ASSET_VERSION;
+  if(!furnitureLoads.has(url))furnitureLoads.set(url,loader.loadAsync(url));
+  const gltf=await furnitureLoads.get(url);
+  const model=gltf.scene.clone(true);model.updateMatrixWorld(true);
   const bounds=new T.Box3().setFromObject(model),size=bounds.getSize(new T.Vector3()),center=bounds.getCenter(new T.Vector3());
   const s=spec.width?spec.width/size.x:spec.height/size.y;
   // Ground each mesh on its lowest point before rotation and placement.
@@ -615,13 +594,18 @@ async function loadModel(spec){
   const placed=new T.Group();placed.name='asset-'+spec.id;placed.add(scaled);
   placed.position.set(spec.x,spec.y||0,spec.z);placed.rotation.y=spec.rot||0;
   model.traverse(o=>{if(o.isMesh){o.castShadow=o.receiveShadow=true;for(const m of [o.material].flat()){if(m.map)m.map.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());}}});
-  scene.add(placed);loadedModels.push(placed);placed.updateMatrixWorld(true);
-  const b=new T.Box3().setFromObject(placed);modelBounds.push({id:spec.id,min:b.min.toArray(),max:b.max.toArray()});
+  if(spec.id==='reading-lamp')model.traverse(o=>{if(o.isMesh){
+    const lit=material=>{if(material.name!=='lamp')return material;const shade=material.clone();shade.emissive.set('#ffc781');shade.emissiveIntensity=.48;return shade;};
+    o.material=Array.isArray(o.material)?o.material.map(lit):lit(o.material);
+  }});
+  scene.add(placed);furnitureObjects.set(spec.id,placed);if(spec.collidable!==false)loadedModels.push(placed);placed.updateMatrixWorld(true);
+  const b=new T.Box3().setFromObject(placed);modelBounds.push({id:spec.id,min:b.min.toArray(),max:b.max.toArray(),collidable:spec.collidable!==false});
+  if(spec.collidable!==false&&b.min.y<.05)contactShadow((b.min.x+b.max.x)/2,(b.min.z+b.max.z)/2,(b.max.x-b.min.x)*1.18,(b.max.z-b.min.z)*1.18);
   done(spec.label);return placed;
 }
 const modelTasks=modelSpecs.map(spec=>loadModel(spec).catch(e=>{failures.push(spec.label);console.error(spec.id,e);done(spec.label+'未载入');}));
 requestAnimationFrame(frame);
-await Promise.all([hdrTask,photoTask,...modelTasks]);
+await Promise.all([hdrTask,photoTask,playerModelTask,...modelTasks]);
 // Observation layer: every major visible object can be inspected without an
 // AI request. Key observations are fixed facts for this art-preview slice;
 // later the chapter manifest can replace them with source-checked clues.
@@ -639,35 +623,24 @@ const inspectData=[
   {id:'mirror',name:'旧镜子',type:'环境记录',position:[-2.30,1.82,-4.82],radius:.38,text:'镜面大部分蒙着灰，右下角却有一小块擦拭痕迹。',clue:true,clueText:'调查提示：有人在近期靠近并擦过镜面。'},
   {id:'toilet',name:'马桶水箱',type:'物件操作',position:[-3.18,.76,-5.00],radius:.38,text:'陶瓷盖板搭在水箱上。可以取下盖板，看看里面的结构。',clue:false}
 ];
+for(const item of inspectData){if(MINIATURE_INSPECTION_POSITIONS[item.id])item.position=[...MINIATURE_INSPECTION_POSITIONS[item.id]];}
+const furnitureInspectMeshes=[];
+for(const [modelId,inspectId] of [['reading-table','table'],['reading-lamp','lamp'],['books','books'],['sofa','sofa']]){
+  const data=inspectData.find(item=>item.id===inspectId);
+  furnitureObjects.get(modelId)?.traverse(mesh=>{if(mesh.isMesh){mesh.userData.inspect=data;furnitureInspectMeshes.push(mesh);}});
+}
 // Case props are deliberately split into evidence, supporting details and
 // red herrings. They all have a physical 3D presence, but only the player's
 // final five answers affect the score.
-const propPositions={
-  'blue-bottle':[2.2,.12,.6],'fake-wound':[-1.0,.52,-3.2],gauze:[.5,.545,-3.18],
-  'record-phone':[2.6,.015,-2.8],'shoot-note':[-1.66,.69,3.22],'sink-residue':[-2.43,1.09,-4.82],
-  'trash-kit':[-2.67,.34,-4.18],'door-scratch':[2.42,1.42,-3.04],diary:[-.1,.53,-3.12],
-  // The old clock hung at z=-3.12, i.e. ~0.7 m in front of the niche plaster,
-  // so it read as floating. Mount it flush on the niche rear wall (z=-3.84),
-  // to the right of the framed print. Group origin + half of the 0.095 case
-  // depth => -3.84 + 0.0475 ≈ -3.79 so the case back sits on the plaster.
-  'blue-paint':[-2.30,.18,-.55],'blue-label':[-2.72,.18,-.84],'old-clock':[1.10,2.25,-3.79]
-};
+const propPositions=MINIATURE_PROP_POSITIONS;
 const propRoot=new T.Group();propRoot.name='blueblood-case-props';scene.add(propRoot);
 const propMats={blue:new T.MeshStandardMaterial({color:'#416e82',roughness:.42,metalness:.12}),paper:new T.MeshStandardMaterial({color:'#c9b990',roughness:.94}),dark:new T.MeshStandardMaterial({color:'#20282a',roughness:.8}),red:new T.MeshStandardMaterial({color:'#762f35',roughness:.5}),metal:new T.MeshStandardMaterial({color:'#706d66',roughness:.35,metalness:.72}),paint:new T.MeshStandardMaterial({color:'#41627a',roughness:.78}),glass:new T.MeshStandardMaterial({color:'#507b8e',roughness:.16,metalness:.22,transparent:true,opacity:.85})};
 function makePropMesh(id,pos){
-  let mesh;
-  if(id==='blue-bottle'||id==='blue-label'){
-    mesh=new T.Mesh(new T.CylinderGeometry(.065,.075,.22,18),id==='blue-bottle'?propMats.blue:propMats.glass);
-    const cap=new T.Mesh(new T.CylinderGeometry(.043,.043,.035,16),propMats.dark);cap.position.y=.128;mesh.add(cap);
-  }else if(id==='fake-wound'){mesh=new T.Mesh(new T.BoxGeometry(.25,.035,.14),propMats.red);}
-  else if(id==='gauze'){mesh=new T.Mesh(new T.BoxGeometry(.24,.09,.18),propMats.paper);}
-  else if(id==='record-phone'){mesh=new T.Mesh(new T.BoxGeometry(.16,.025,.29),propMats.dark);}
-  else if(id==='shoot-note'){mesh=new T.Mesh(new T.BoxGeometry(.28,.012,.19),propMats.paper);mesh.rotation.y=-.15;}
+  let mesh=createMiniatureCaseProp(id,propMats);
+  if(mesh){/* The detailed asset is positioned below with the remaining props. */}
   else if(id==='sink-residue'){mesh=new T.Mesh(new T.TorusGeometry(.08,.014,10,22),propMats.blue);mesh.rotation.x=Math.PI/2;}
   else if(id==='trash-kit'){mesh=new T.Mesh(new T.CylinderGeometry(.19,.16,.35,18),propMats.dark);}
   else if(id==='door-scratch'){mesh=new T.Mesh(new T.BoxGeometry(.05,.16,.012),propMats.metal);}
-  else if(id==='diary'){mesh=new T.Mesh(new T.BoxGeometry(.34,.065,.25),new T.MeshStandardMaterial({color:'#6c4e3d',roughness:.9}));}
-  else if(id==='blue-paint'){mesh=new T.Mesh(new T.CylinderGeometry(.13,.13,.22,18),propMats.paint);}
   else if(id==='old-clock'){
     const clock=new T.Group();clock.name='stopped-wall-clock';
     const rim=new T.Mesh(new T.CylinderGeometry(.37,.37,.095,48),new T.MeshStandardMaterial({color:'#47382d',roughness:.72,metalness:.08}));rim.rotation.x=Math.PI/2;clock.add(rim);
@@ -694,7 +667,7 @@ for(const prop of blueBloodCase.props){
   if(inspectData.some(item=>item.id===prop.id))continue;
   const position=propPositions[prop.id];if(!position)continue;
   const data={id:prop.id,name:prop.name,type:prop.category,position,radius:prop.id==='diary'?.34:.25,text:prop.text,clue:prop.supports.length>0,clueText:prop.supports.length?`调查方向：${prop.supports.map(id=>blueBloodCase.questions.find(q=>q.id===id)?.label.replace('？','')).join('、')}`:''};
-  inspectData.push(data);caseInspectData.push(data);const propMesh=makePropMesh(prop.id,position);if(propMesh){propMesh.userData.inspect=data;casePropMeshes.push(propMesh);}
+  inspectData.push(data);caseInspectData.push(data);const propMesh=makePropMesh(prop.id,position);if(propMesh){propMesh.userData.inspect=data;propMesh.traverse(part=>{if(part.isMesh){part.userData.inspect=data;casePropMeshes.push(part);}});}
 }
 const hotspotGroup=new T.Group();hotspotGroup.name='inspection-hotspots';scene.add(hotspotGroup);
 const hotspotMaterial=new T.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false,visible:false}); // invisible hit-test proxy; never renders a white orb
@@ -744,8 +717,12 @@ function updatePointer(e){
   const r=canvas.getBoundingClientRect();pointer.x=(e.clientX-r.left)/r.width*2-1;pointer.y=-(e.clientY-r.top)/r.height*2+1;scene.updateMatrixWorld(true);raycaster.setFromCamera(pointer,camera);
   // Close inspection uses the actual object surfaces, not the sofa's broad
   // observation sphere, which can otherwise cover the moved frame in front.
-  const candidates=activeView==='photo'?photoMeshes:activeView==='tank'?cisternMeshes:[...hotspots,...casePropMeshes,...cisternMeshes,...photoMeshes,...drawerMeshes,...npcMeshes];
-  const hit=raycaster.intersectObjects(candidates,false)[0];if(!hit)return null;
+  const candidates=activeView==='photo'?photoMeshes:activeView==='tank'?cisternMeshes:[...furnitureInspectMeshes,...casePropMeshes,...cisternMeshes,...photoMeshes,...drawerMeshes,...npcMeshes];
+  // Visible surfaces decide occlusion. Broad furniture envelopes must not
+  // intercept clicks on the small evidence resting on a table or sofa.
+  const physicalHit=raycaster.intersectObjects(candidates,false)[0];
+  const proxyHits=physicalHit?[]:raycaster.intersectObjects(hotspots,false);
+  const hit=physicalHit||proxyHits.find(item=>!['table','sofa'].includes(item.object.userData.inspect?.id))||proxyHits[0];if(!hit)return null;
   const id=hit.object.userData.inspect?.id;
   if(id==='toilet'||id==='photo'){
     const surfaceHit=raycaster.intersectObjects([architecture,bathroom,...(wallPhoto?[wallPhoto.root]:[])],true)[0];
@@ -806,18 +783,26 @@ $('inspect-action').onclick=()=>{
 $('inspect-return').onclick=resumePlayer;
 $('inspect-close').onclick=resumePlayer;
 // A very small, physically located pool of warm light at the metal lamp.
-const lampGlow=new T.PointLight('#ffd19a',.6,2.2,2);lampGlow.position.set(-1.93,1.04,3.00);scene.add(lampGlow);
+const lampGlow=new T.PointLight('#ffc58a',1.65,2.9,2);lampGlow.position.set(-1.30,.78,-2.05);scene.add(lampGlow);
 if(failures.length){
   $('art-status').textContent='蓝血第一章 · '+failures.join('、')+'未载入，请刷新重试';
 }else $('art-status').textContent='第一章 · 蓝血 · 调查现场';
 const obstacles=apartmentObstacles(modelBounds,sceneCharacters.map((character,index)=>({x:character.root.position.x,z:character.root.position.z,radius:[.60,.45,.40][index]})));
-obstacles.push({id:'drawer-clearance',minX:-3.56,maxX:-3.04,minZ:.7,maxZ:1.04});
-playerController=createKanshanPlayer({scene,camera,canvas,obstacles,cameraSolids:[architecture,bathroom,...loadedModels],
-  blocked:()=>modalOpen()||!$('inspect-panel').hidden||!$('loading').hidden||document.hidden,
-  onInteract:()=>{updateNearby();if(nearby)openInspection(nearby);else playerToast('走近人物或道具，按 E 交互。');},
-  onResume:resumePlayer,joystick:$('move-stick'),stick:$('move-stick-thumb')});
-$('loading').hidden=true;
-resumePlayer();
-window.roomReady=true;
+obstacles.push(MINIATURE_DRAWER.obstacle);
+if(playerCharacter){
+  playerController=createKanshanPlayer({scene,camera,canvas,character:playerCharacter,obstacles,cameraSolids:[architecture,bathroom,...loadedModels],
+    blocked:()=>modalOpen()||!$('inspect-panel').hidden||!$('loading').hidden||document.hidden,
+    onInteract:()=>{updateNearby();if(nearby)openInspection(nearby);else playerToast('走近人物或道具，按 E 交互。');},
+    onResume:resumePlayer,joystick:$('move-stick'),stick:$('move-stick-thumb')});
+  $('loading').hidden=true;
+  resumePlayer();
+  window.roomReady=true;
+}else{
+  $('loading').hidden=false;$('loading-text').textContent=playerModelError.message;
+  $('load-progress').hidden=true;$('retry').hidden=false;
+}
 // Read-only QA summary. No secrets or gameplay internals are exposed.
-window.roomArtReport={mode:'blueblood-case',characters:sceneCharacters.length+1,npcProfiles:3,models:modelBounds,failures,materials:4,interactive:inspectData.length,memo:true,caseQuestions:blueBloodCase.questions.length,diaryPages:blueBloodCase.diary.length,protagonist:'刘看山（程序化近似模型）',player:playerController.state(),view:activeView};
+// Fixed existing camera presets also serve repeatable art review screenshots.
+const reviewView=new URLSearchParams(location.search).get('artview');
+if(playerCharacter&&reviewView&&Object.hasOwn(views,reviewView))setView(reviewView,false);
+window.roomArtReport={mode:'blueblood-case',artStyle:'miniature-apartment',assetSource:'Kenney Furniture Kit / CC0',characters:sceneCharacters.length+(playerCharacter?1:0),npcProfiles:3,models:modelBounds,failures,materials:4,interactive:inspectData.length,memo:true,caseQuestions:blueBloodCase.questions.length,diaryPages:blueBloodCase.diary.length,protagonist:'刘看山（Blender 模型）',player:playerController?.state()||null,playerModelError:playerModelError?.message||null,view:activeView,interactions:inspectData.map(({id,position,radius})=>({id,position,radius}))};

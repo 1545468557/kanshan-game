@@ -1,0 +1,20 @@
+{
+  "name": "刘看山",
+  "authoring": "Blender 5.2.2 LTS",
+  "triangles": 56122,
+  "materials": 5,
+  "animations": [
+    "Idle",
+    "Walk",
+    "FastWalk"
+  ],
+  "heightApprox": 1.3,
+  "coordinates": "glTF Y up, front +Z, feet at 0",
+  "designReference": "User supplied Liu Kanshan 3D 2026-09-24; source geometry retained and rigged",
+  "sourceFile": "art/characters/liukanshan/source-20260924.glb",
+  "sourceSHA256": "c1ed8df1733f8d179b5928bba2ee6ab972e1d0757c635fa3a3bdb928001f2230",
+  "nominalSpeeds": {
+    "Walk": 1.55,
+    "FastWalk": 2.35
+  }
+}

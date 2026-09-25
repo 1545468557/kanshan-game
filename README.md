@@ -16,18 +16,51 @@
 
 游戏首页是 `public/index.html` —— **根路径 `/` 打开的就是它**，线上链接和本地双击 `开始游戏.command` 都落在这一页。从首页的「选择故事 → 第一章 蓝血 → 进入调查现场」进入第一幕。
 
-第一幕本体是 `public/room.html`，整合使用高真实感旧公寓场景和蓝血案件配置。也可以直接访问 `/room.html` 跳过开场菜单。历史第三人称原型保留在 `public/room-gameplay.html`，仅作参考。
+第一幕本体是 `public/room.html`，整合使用微缩模型风格的旧公寓场景和蓝血案件配置。也可以直接访问 `/room.html` 跳过开场菜单。历史第三人称原型保留在 `public/room-gameplay.html`，仅作参考。
 
 - 完全由立体网格搭建的旧公寓，包含窗户、木柜、书桌、沙发、靠窗旧木椅、褪色住户通知、门厅与冷暖灯光。
 - 当前《蓝血》：WASD / 方向键移动，鼠标拖动转视角，滚轮调整远近；E 交互，R 回到刘看山。旧原型的 F 手电 / B 线索本快捷键不适用于当前页面。
 - 手机使用左下摇杆移动，拖动场景转视角，点击交互按钮。
-- 墙体 / 家具 / 人物碰撞、相机遇墙收近、四件物品调查、抽屉打开、三位人物的预设演示对话。
-- 刘看山为参照官方素材制作的程序化近似模型，不是官方 3D 素材。熊、燕子、企鹅为符合角色身份的原创动物模型，不宣称是知乎其他官方 IP。
+- 墙体 / 家具 / 人物碰撞、相机遇墙收近、道具调查、抽屉打开与三位人物交谈。
+- 刘看山使用用户提供的 Lux3D + Blender 静态模型，在 Blender 中整理表面并添加骨骼，支持待机、行走与快走；不是官方提供的 3D 素材。熊、燕子、企鹅为符合角色身份的原创动物模型，不宣称是知乎其他官方 IP。
 - 《蓝血》整合版的五题答案、日记、关键证据、辅助证据、干扰项和三名 NPC 的知识边界集中在 `public/blueblood-case.mjs`；自由问答由大模型按各自边界扮演（见文末 2026-09-13 一节），结案评分按五个问题分别计算。
 - 2026-09-11 真实感首轮：统一冷色窗光与暖色室内实灯，降低曝光；为门厅、门牌 402、书桌、木柜、纸箱和沙发增加圆角受光；补充门牌立体数字、窗帘褶皱、楼外建筑和与角色身份对应的生活物件。它们仍属于新增改编，不应当被误认作知乎原文事实。
 - Three.js 固定为 0.180.0，浏览器直接加载 `public/vendor/three/`，无需第三方 CDN 在线连接；MIT 许可证随引擎保留。
-- 第一批真实外部资产：Poly Haven 的 Painted Wooden Cabinet（旧木柜）和 Wood Floor（PBR 地板贴图），均为 CC0 1.0；模型通过本地 `GLTFLoader` 加载。完整来源、用途与许可记录在 `public/assets/ASSET-CREDITS.md`。
+- 当前家具来自 Kenney Furniture Kit，采用 CC0 1.0，经 Blender 调整圆角与配色后通过本地 `GLTFLoader` 加载；Poly Haven 的 `old_room` HDR 继续提供环境光。早期 Poly Haven 家具和 PBR 贴图保留在项目中，当前房间不再加载。来源与许可记录在 `public/assets/ASSET-CREDITS.md`。
 - `tests/room.test.mjs` 覆盖模型几何、动画数值、碰撞、全部交互点可达性与 DOM 引用。自动测试不代表 GPU 画面和手机真机已验收。
+
+## 微缩旧公寓更新（2026-09-25）
+
+房间采用浅灰泥、低饱和木色和柔和边缘的微缩模型风格。沙发保留在后方凹室，小桌、台灯和书册组成阅读角，窗边座椅、边柜、绿植与收纳物补充生活感。家具、调查点和道具位置由 `public/miniature-layout.mjs` 共同配置；地毯与桌面装饰标记为不阻挡行走。刘看山模型沿用当前版本，案件内容、人物对话与调查操作保持原有规则。
+
+灯光采用入暮时分的悬疑氛围：冷灰蓝窗光与局部暖色台灯形成对照，降低全屋补光和环境反射，窗外天空与建筑同步压暗。暗部保留人物轮廓、通路和调查物件的辨识度。
+
+主家具是从 [Kenney Furniture Kit](https://kenney.nl/assets/furniture-kit) 下载的模型，不是 AI 生成资产。仓库在 `art/room-miniature/source/` 保留适配所需的 15 份未改动原始 GLB、许可和来源说明；完整下载包及其余展开文件为可选本地缓存，不提交。`scripts/prepare-miniature-furniture.py` 可直接使用仓库中的源文件，在 Blender 中居中、落地、整理法线并添加柔和倒角和统一配色，导出到 `public/assets/room-miniature/`；每项来源路径、SHA256 与加工说明记录在该目录的 `manifest.json`，CC0 许可原文为 `License.txt`。
+
+`public/miniature-materials.mjs` 的 `createMiniatureMaterials` 提供墙面、地板和建筑构件的代码辅助材质；`public/miniature-dressing.mjs` 补充资源包中没有的窗帘、窗外环境等辅助构造。家具造型来源与这些辅助制作分别记录在 `public/assets/ROOM-ART-CREDITS.md`。
+
+在项目根目录重建家具和检查布局：
+
+```sh
+/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup --python scripts/prepare-miniature-furniture.py
+node tests/apartment-navigation.test.mjs
+node scripts/check-miniature-navigation.mjs --map output/room-miniature/navigation.svg --json output/room-miniature/navigation-report.json
+```
+
+导航检查直接读取实际 GLB 和共享布局，检查家具碰撞、地毯通行、抽屉避让区、卫生间通路与全部调查目标的接近距离。地图和报告写入被 Git 忽略的 `output/room-miniature/`；建筑遮挡、相机和近景操作仍需在 `/room.html` 中查看。
+
+## 刘看山模型更新（2026-09-25）
+
+当前第一章主角使用 `public/assets/characters/liukanshan/liukanshan.glb`，基于用户提供的 `刘看山3D-20260924/刘看山.glb` 制作。原资源由 Lux3D 生成并经过 Blender 修整，为静态模型；本次保留其厚实圆润的体形、四肢与已有手指，整理表面并增加骨骼动画。当前游戏资产高约 1.30 米、56,122 个三角面，使用五种材质。`Idle`、`Walk`、`FastWalk` 均为原地骨骼动画，角色移动仍由游戏控制器负责，行走和快走基准速度分别为 1.55、2.35 世界单位/秒。
+
+- 模型预览：运行本地服务后打开 `http://127.0.0.1:4180/character-preview.html`，可切换正面、侧面、背面、动作及转台。
+- 可编辑 Blender 文件：运行下方重建命令后生成 `output/blender/liukanshan/liukanshan.blend`，包含骨骼、三个动作、材质和预览摄影棚。
+- 原始资源：`art/characters/liukanshan/source-20260924.glb`，原样保留用户提供的文件；来源与 SHA256 记录见同目录 `README.md`。
+- 多角度渲染：重建命令生成 `output/blender/liukanshan/` 内的 `hero.png`、`front.png`、`side.png`、`back.png`。这些渲染图与 `.blend` 属于本地生成输出，不随仓库提交。
+- 重建：`/Applications/Blender.app/Contents/MacOS/Blender -b --factory-startup --python scripts/build-liukanshan.py`。该脚本调用 `scripts/prepare-liukanshan-reference.py` 导入并整理原始资源，再添加骨骼、动作和导出；末尾追加 `-- --no-render` 可跳过静态渲染。
+- 资产检查：`node tests/kanshan-asset.test.mjs`，直接读取真实 GLB 并采样动画，校验尺寸、蒙皮、脚底和骨骼数值。
+
+修改并重新导出模型后，同时更新 `kanshan-model.mjs` 中的资源版本号，以及预览页和房间入口的模块版本号，避免浏览器沿用旧资源。详细编辑说明见 [角色编辑指南](art/characters/liukanshan/EDITING.md)。
 
 ## 本地运行
 
@@ -84,7 +117,7 @@ python3 -m http.server 4180 --bind 127.0.0.1 --directory public
 ## 蓝血第一幕调查现场（2026-09-12）
 
 - 第一幕页面：`room.html`，场景使用 `room-art.mjs` / `room-art.css`，并载入 `blueblood-case.mjs` 案件配置与三个程序化 NPC 形象。
-- 全新凹间、侧门洞与实体窗洞布局，7 件完整 glTF 家具/书籍模型，4 套 PBR 材质、HDR 环境反射、实体遮挡阴影和屏幕空间接触阴影。
+- 2026-09-12 初版采用凹间、侧门洞与实体窗洞布局、Poly Haven 家具和 PBR 材质，并加入 HDR 环境反射、实体遮挡阴影和屏幕空间接触阴影。当前房间美术见上方「微缩旧公寓更新」。
 - 默认操控刘看山第三人称行走，拖动环视、滚轮缩放；“观察镜头”中保留各个近景观察位置，按 R 返回主角原来的站位。触屏使用左侧摇杆移动，拖动场景环视，点击附近物件的交互按钮。
 - 支持点击调查关键证据、辅助证据和干扰项，阅读五页日记，询问三个 NPC，编辑五题“我的解释”并提交结案。道具调查不会自动替玩家填写备忘录，也不会强制玩家调查某一件物品。
 - 请从 HTTP 本地服务器打开；直接双击文件时只会给出提示，前端不会写入任何写死的本地地址。
@@ -96,7 +129,7 @@ python3 -m http.server 4180 --bind 127.0.0.1 --directory public
 
 ### 刘看山可操控主角（2026-09-12）
 
-- 在现有写实房间中加入 `kanshan-player.mjs`，复用参考官方形象制作的程序化 3D 近似模型；没有替换房间或退回旧方块场景。
+- 在现有写实房间中加入第三人称控制器 `kanshan-player.mjs`。当前使用的绑定角色资产见上方「刘看山模型更新（2026-09-25）」。
 - WASD / 方向键移动、Shift 快走、拖动环视、滚轮调距离；走近物品或 NPC 后按 E，或直接点选附近物体。跟随镜头遇墙和家具自动收近。
 - 墙体、家具、门框、三个 NPC 和卫生间设施有碰撞。抽屉前预留操作空间，不允许走进柜体。狭窄位置镜头过近时临时隐藏主角，移开后恢复。
 - 调查卡片、人物对话、日记、备忘录、五问面板打开时停止移动；失焦清除按键，避免返回后继续走。关闭近景或按 R 回到原站位，物品开合状态不重置。

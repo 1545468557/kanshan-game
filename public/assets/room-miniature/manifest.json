@@ -1,0 +1,128 @@
+{
+  "author": "Kenney",
+  "source": "https://kenney.nl/assets/furniture-kit",
+  "license": "CC0-1.0",
+  "changes": "Recentered and grounded; soft bevels and a muted miniature palette.",
+  "assets": [
+    {
+      "id": "loungeSofa",
+      "file": "loungeSofa.glb",
+      "sourceFile": "art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/loungeSofa.glb",
+      "sourceSHA256": "1886b811c0d3ad0d8525a4fd43adf4112c497c8e0ed906f06877ca3517f4c7dd",
+      "bytes": 78608,
+      "triangles": 2648
+    },
+    {
+      "id": "loungeChair",
+      "file": "loungeChair.glb",
+      "sourceFile": "art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/loungeChair.glb",
+      "sourceSHA256": "ddfe6bc4b3451bca61666d7b614552d6ed2a03d82fc76244b72ae3155874dc6c",
+      "bytes": 77084,
+      "triangles": 2584
+    },
+    {
+      "id": "chairRounded",
+      "file": "chairRounded.glb",
+      "sourceFile": "art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/chairRounded.glb",
+      "sourceSHA256": "53f4933ec547179c499f04dbda1231cf44b83ec82c7f4ab981cdf680aee5c973",
+      "bytes": 73540,
+      "triangles": 2308
+    },
+    {
+      "id": "tableRound",
+      "file": "tableRound.glb",
+      "sourceFile": "art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/tableRound.glb",
+      "sourceSHA256": "f8daea9124a542a00b7bdacfddac82dc468573d43e44d7b54dd6316e9695754b",
+      "bytes": 31620,
+      "triangles": 988
+    },
+    {
+      "id": "bookcaseClosed",
+      "file": "bookcaseClosed.glb",
+      "sourceFile": "art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/bookcaseClosed.glb",
+      "sourceSHA256": "9d210448de5e1179541da895450bbc7a39f4cd673d677654cd6b134e4ea0e047",
+      "bytes": 142936,
+      "triangles": 4568
+    },
+    {
+      "id": "sideTableDrawers",
+      "file": "sideTableDrawers.glb",
+      "sourceFile": "art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/sideTableDrawers.glb",
+      "sourceSHA256": "911145653c11b103b2c2e84f3d019205d1886186015c3b52aceddc3801ae8fdf",
+      "bytes": 94544,
+      "triangles": 2924
+    },
+    {
+      "id": "lampRoundTable",
+      "file": "lampRoundTable.glb",
+      "sourceFile": "art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/lampRoundTable.glb",
+      "sourceSHA256": "75bb644caaa3da003b4fcad7a931722dd61cd2858aab70cf660021d5061fa1b2",
+      "bytes": 31524,
+      "triangles": 956
+    },
+    {
+      "id": "lampRoundFloor",
+      "file": "lampRoundFloor.glb",
+      "sourceFile": "art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/lampRoundFloor.glb",
+      "sourceSHA256": "50fe1b5b588edf15bfa9cc880f71a02a4fda6036350b24733d0ef4de5cc5e908",
+      "bytes": 31432,
+      "triangles": 956
+    },
+    {
+      "id": "books",
+      "file": "books.glb",
+      "sourceFile": "art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/books.glb",
+      "sourceSHA256": "b8dc56e5d29f6fc1f4727fccb1b9642627fee9942c48060a00034e98df02701c",
+      "bytes": 30144,
+      "triangles": 840
+    },
+    {
+      "id": "pillow",
+      "file": "pillow.glb",
+      "sourceFile": "art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/pillow.glb",
+      "sourceSHA256": "6fae7c190d0b676ef3efd35e5178cef21dffb5c80e1257d8b537ad424da0e5f6",
+      "bytes": 10492,
+      "triangles": 508
+    },
+    {
+      "id": "rugRectangle",
+      "file": "rugRectangle.glb",
+      "sourceFile": "art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/rugRectangle.glb",
+      "sourceSHA256": "a989d2d59c04e3071e0c90388b113a9a8f339ce1814ef984c51cb6dcd7c8e0eb",
+      "bytes": 3868,
+      "triangles": 28
+    },
+    {
+      "id": "pottedPlant",
+      "file": "pottedPlant.glb",
+      "sourceFile": "art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/pottedPlant.glb",
+      "sourceSHA256": "5b760eda2766f75fda36b2c5df652a1662f82981ef64cd8fa7fe7bcd386b3a15",
+      "bytes": 6936,
+      "triangles": 52
+    },
+    {
+      "id": "plantSmall1",
+      "file": "plantSmall1.glb",
+      "sourceFile": "art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/plantSmall1.glb",
+      "sourceSHA256": "2b9c022feb47be857b2c4fdc29f36522766ba9b70c578c31d7c05d71b4377d15",
+      "bytes": 8156,
+      "triangles": 102
+    },
+    {
+      "id": "cardboardBoxClosed",
+      "file": "cardboardBoxClosed.glb",
+      "sourceFile": "art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/cardboardBoxClosed.glb",
+      "sourceSHA256": "4af079dca52960912764574950f0549ff2ae1224b3db1528718629473a2d5d81",
+      "bytes": 5376,
+      "triangles": 126
+    },
+    {
+      "id": "radio",
+      "file": "radio.glb",
+      "sourceFile": "art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/radio.glb",
+      "sourceSHA256": "1ba93d6ba6f049750853b4652b92f286f2898e527695a0705b75cc7615897fed",
+      "bytes": 80896,
+      "triangles": 2376
+    }
+  ]
+}

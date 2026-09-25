@@ -1,6 +1,6 @@
 // Collision footprints in metres, matching room-art.mjs, not the older room.
 export const PLAYER_RADIUS = .36;
-export const PLAYER_START = { x: .65, z: 1.55 };
+export const PLAYER_START = { x: .65, z: .90 };
 const rect = (id, minX, maxX, minZ, maxZ) => ({ id, minX, maxX, minZ, maxZ });
 export function apartmentObstacles(models = [], characters = []) {
   return [
@@ -18,7 +18,7 @@ export function apartmentObstacles(models = [], characters = []) {
     rect('niche-right', 1.55, 1.67, -3.94, -3.18),
     rect('toilet', -3.48, -2.90, -5.16, -4.37),
     rect('basin', -2.65, -2.22, -5.01, -4.62),
-    ...models.filter(m => m.min[1] < .15).map(m => rect(m.id, m.min[0], m.max[0], m.min[2], m.max[2])),
+    ...models.filter(m => m.collidable !== false && m.min[1] < .15).map(m => rect(m.id, m.min[0], m.max[0], m.min[2], m.max[2])),
     ...characters.map((p, i) => { const r = p.radius ?? .45;return rect(`npc-${i}`, p.x - r, p.x + r, p.z - r, p.z + r); })
   ];
 }

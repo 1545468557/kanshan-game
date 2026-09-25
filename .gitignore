@@ -5,6 +5,31 @@ node_modules/
 .DS_Store
 *.tar.gz
 
+# 本地渲染、截图、检查报告与可重建的 Blender 输出。
+/output/
+
+# Kenney 完整下载包是可选缓存；只提交适配需要的原始 GLB 和许可。
+/art/room-miniature/source/kenney_furniture-kit.zip
+/art/room-miniature/source/kenney-furniture-kit/**
+!/art/room-miniature/source/kenney-furniture-kit/License.txt
+!/art/room-miniature/source/kenney-furniture-kit/Models/
+!/art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/
+!/art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/loungeSofa.glb
+!/art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/loungeChair.glb
+!/art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/chairRounded.glb
+!/art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/tableRound.glb
+!/art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/bookcaseClosed.glb
+!/art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/sideTableDrawers.glb
+!/art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/lampRoundTable.glb
+!/art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/lampRoundFloor.glb
+!/art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/books.glb
+!/art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/pillow.glb
+!/art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/rugRectangle.glb
+!/art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/pottedPlant.glb
+!/art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/plantSmall1.glb
+!/art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/cardboardBoxClosed.glb
+!/art/room-miniature/source/kenney-furniture-kit/Models/GLTF format/radio.glb
+
 # 运行时数据：玩家提问记录、NPC 回答缓存。
 # 里面有真实访客输入，不提交。
 data/
